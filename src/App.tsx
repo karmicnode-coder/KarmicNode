@@ -710,6 +710,25 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
   updateQty: (id: number, qty: number) => void; remove: (id: number) => void
 }) {
   const total = items.reduce((s, i) => s + i.price * i.qty, 0)
+  const [loading, setLoading] = React.useState(false)
+
+  async function handleCheckout() {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, origin: window.location.origin }),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+      else alert('Erro ao iniciar pagamento. Tente novamente.')
+    } catch {
+      alert('Erro ao iniciar pagamento. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <>
@@ -761,7 +780,9 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
               <span style={{ fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-mute)' }}>Subtotal</span>
               <span style={{ fontFamily: 'var(--f-display)', fontSize: 26, fontWeight: 600 }}>{fmt(total)}</span>
             </div>
-            <PrimaryBtn full onClick={() => { alert('Checkout em desenvolvimento. Em breve disponível!') }}>Finalizar Compra</PrimaryBtn>
+            <PrimaryBtn full onClick={handleCheckout} disabled={loading}>
+              {loading ? 'A processar...' : 'Finalizar Compra'}
+            </PrimaryBtn>
             <p style={{ fontSize: 11, color: 'var(--fg-mute)', textAlign: 'center', letterSpacing: '.06em', marginTop: 12 }}>
               Envio grátis a partir de 150€ · Devolução em 30 dias
             </p>
@@ -1954,6 +1975,19 @@ export default function App() {
     const h = () => setBackTop(window.scrollY > 400)
     window.addEventListener('scroll', h)
     return () => window.removeEventListener('scroll', h)
+  }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const status = params.get('pagamento')
+    if (status === 'sucesso') {
+      setToast('✅ Pagamento concluído! Obrigado pela sua compra.')
+      setCartItems([])
+      window.history.replaceState({}, '', '/')
+    } else if (status === 'cancelado') {
+      setToast('Pagamento cancelado. O carrinho foi mantido.')
+      window.history.replaceState({}, '', '/')
+    }
   }, [])
 
   const navigate = useCallback((p: Page, filter?: string) => {

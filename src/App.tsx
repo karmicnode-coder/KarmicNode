@@ -1471,9 +1471,13 @@ function ProductPage({ product, onAdd, onBack, wishlist, toggleWish, allProducts
 
 // ─── ContactPage ──────────────────────────────────────────────────────────────
 
+const FORMSPREE_URL = 'https://formspree.io/f/xeeyzlvb'
+
 function ContactPage() {
   const [form, setForm] = useState({ nome: '', email: '', area: 'Roupa & Moda', msg: '' })
   const [sent, setSent] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   return (
     <div style={{ minHeight: '80vh' }}>
@@ -1571,7 +1575,16 @@ function ContactPage() {
                     onBlur={e => (e.currentTarget.style.borderBottomColor = 'var(--border)')} />
                 </div>
 
-                <PrimaryBtn full onClick={() => { if (form.nome && form.email && form.msg) setSent(true) }}>Enviar Pedido</PrimaryBtn>
+                <PrimaryBtn full onClick={async () => {
+                  if (!form.nome || !form.email || !form.msg) return
+                  setLoading(true); setError('')
+                  try {
+                    const r = await fetch(FORMSPREE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ Nome: form.nome, Email: form.email, Área: form.area, Mensagem: form.msg }) })
+                    if (r.ok) { setSent(true) } else { setError('Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com') }
+                  } catch { setError('Erro de rede. Verifique a ligação e tente novamente.') }
+                  setLoading(false)
+                }}>{loading ? 'A enviar…' : 'Enviar Pedido'}</PrimaryBtn>
+                {error && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--bordo)', lineHeight: 1.5 }}>{error}</p>}
               </>
             )}
           </div>
@@ -1893,6 +1906,8 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [sent, setSent] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   const canNext1 = !!garment
@@ -1912,9 +1927,30 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
 
   const price = estimatePrice()
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!canSubmit) return
-    setSent(true)
+    setLoading(true); setError('')
+    const garmentLabel = CUSTOM_GARMENTS.find(g => g.id === garment)?.label ?? garment
+    const fabricLabel = CUSTOM_FABRICS.find(f => f.id === fabric)?.label ?? fabric
+    const printLabel = CUSTOM_PRINTS.find(p => p.id === printType)?.label ?? printType
+    const p = estimatePrice()
+    try {
+      const r = await fetch(FORMSPREE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          Nome: name, Email: email, Telefone: phone || '—',
+          Artigo: garmentLabel, Material: fabricLabel, Técnica: printLabel,
+          'Cor base': color, Quantidade: `${qty} unidades`,
+          'Estimativa unitária': p ? `${p.unit}€` : '—',
+          'Estimativa total': p ? `${p.total}€` : '—',
+          Notas: notes || '—',
+          Formulário: 'Roupa Personalizada',
+        }),
+      })
+      if (r.ok) { setSent(true) } else { setError('Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com') }
+    } catch { setError('Erro de rede. Verifique a ligação e tente novamente.') }
+    setLoading(false)
   }
 
   return (
@@ -2142,9 +2178,12 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                             onBlur={e => (e.currentTarget.style.borderBottomColor = 'var(--border)')} />
                         </div>
                       ))}
-                      <div style={{ marginTop: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-                        <GhostBtn onClick={() => setStep(3)}>← Voltar</GhostBtn>
-                        <PrimaryBtn onClick={handleSubmit}>Pedir orçamento</PrimaryBtn>
+                      <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                          <GhostBtn onClick={() => setStep(3)}>← Voltar</GhostBtn>
+                          <PrimaryBtn onClick={handleSubmit}>{loading ? 'A enviar…' : 'Pedir orçamento'}</PrimaryBtn>
+                        </div>
+                        {error && <p style={{ fontSize: 13, color: 'var(--bordo)', lineHeight: 1.5, margin: 0 }}>{error}</p>}
                       </div>
                     </div>
                   )}

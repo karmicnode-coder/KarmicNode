@@ -543,13 +543,14 @@ function GhostBtn({ children, onClick }: { children: ReactNode; onClick?: () => 
   )
 }
 
-function PrimaryBtn({ children, onClick, full }: { children: ReactNode; onClick?: () => void; full?: boolean }) {
+function PrimaryBtn({ children, onClick, full, disabled }: { children: ReactNode; onClick?: () => void; full?: boolean; disabled?: boolean }) {
   const [hov, setHov] = useState(false)
   return (
-    <button onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '14px 28px', background: hov ? 'var(--bordo-2)' : 'var(--bordo)', border: 'none', color: '#F5F2ED', fontFamily: 'var(--f-sans)', fontSize: 12, letterSpacing: '.24em', textTransform: 'uppercase', fontWeight: 500, transition: 'background .2s ease', width: full ? '100%' : 'auto' }}>
+    <button onClick={disabled ? undefined : onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      disabled={disabled}
+      style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '14px 28px', background: disabled ? 'var(--border)' : hov ? 'var(--bordo-2)' : 'var(--bordo)', border: 'none', color: disabled ? 'var(--fg-mute)' : '#F5F2ED', fontFamily: 'var(--f-sans)', fontSize: 12, letterSpacing: '.24em', textTransform: 'uppercase', fontWeight: 500, transition: 'background .2s ease', width: full ? '100%' : 'auto', cursor: disabled ? 'not-allowed' : 'pointer' }}>
       {children}
-      <svg width="13" height="9" viewBox="0 0 14 10" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 5h12M9 1l4 4-4 4" /></svg>
+      {!disabled && <svg width="13" height="9" viewBox="0 0 14 10" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 5h12M9 1l4 4-4 4" /></svg>}
     </button>
   )
 }
@@ -701,15 +702,23 @@ function ProductCarousel({ eyebrow, title, products, onAdd, onOpen, wishlist, to
 
 // ─── CartDrawer ───────────────────────────────────────────────────────────────
 
+const SHIPPING_THRESHOLD = 150
+const SHIPPING_COST = 4.99
+
 function CartDrawer({ open, onClose, items, updateQty, remove }: {
   open: boolean; onClose: () => void; items: CartItem[]
   updateQty: (id: number, qty: number) => void; remove: (id: number) => void
 }) {
-  const total = items.reduce((s, i) => s + i.price * i.qty, 0)
+  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0)
+  const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
+  const total = subtotal + shipping
+  const freeShippingRemaining = SHIPPING_THRESHOLD - subtotal
   const [loading, setLoading] = React.useState(false)
+  const [checkoutError, setCheckoutError] = React.useState('')
 
   async function handleCheckout() {
     setLoading(true)
+    setCheckoutError('')
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
@@ -717,10 +726,13 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
         body: JSON.stringify({ items, origin: window.location.origin }),
       })
       const data = await res.json()
-      if (data.url) window.location.href = data.url
-      else alert('Erro ao iniciar pagamento. Tente novamente.')
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        setCheckoutError(data.error || 'Erro ao iniciar pagamento. Tente novamente.')
+      }
     } catch {
-      alert('Erro ao iniciar pagamento. Tente novamente.')
+      setCheckoutError('Erro de rede. Verifique a ligação e tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -730,6 +742,8 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
     <>
       <div className={`cart-overlay ${open ? 'open' : ''}`} onClick={onClose} />
       <div className={`cart-drawer ${open ? 'open' : ''}`}>
+
+        {/* Header */}
         <div style={{ padding: '22px 26px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <Eyebrow text="Carrinho" />
@@ -737,15 +751,37 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
               {items.length} {items.length === 1 ? 'artigo' : 'artigos'}
             </div>
           </div>
-          <button onClick={onClose} style={{ width: 38, height: 38, border: '1px solid var(--border)', background: 'transparent', color: 'var(--fg-mute)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <button onClick={onClose} style={{ width: 38, height: 38, border: '1px solid var(--border)', background: 'transparent', color: 'var(--fg-mute)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
           </button>
         </div>
 
+        {/* Free shipping progress */}
+        {items.length > 0 && (
+          <div style={{ padding: '12px 26px', background: subtotal >= SHIPPING_THRESHOLD ? 'rgba(176,141,87,.1)' : 'var(--bg-1)', borderBottom: '1px solid var(--border)' }}>
+            {subtotal >= SHIPPING_THRESHOLD ? (
+              <div style={{ fontSize: 12, color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: 7 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                Parabéns! Tem envio grátis nesta encomenda.
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginBottom: 7 }}>
+                  Faltam <b style={{ color: 'var(--fg)' }}>{fmt(freeShippingRemaining)}</b> para envio grátis
+                </div>
+                <div style={{ height: 3, background: 'var(--border)', borderRadius: 2 }}>
+                  <div style={{ height: '100%', background: 'var(--gold)', borderRadius: 2, width: `${Math.min((subtotal / SHIPPING_THRESHOLD) * 100, 100)}%`, transition: 'width .4s ease' }} />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Items */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '18px 26px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {items.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--fg-mute)' }}>
-              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" style={{ margin: '0 auto 16px', opacity: .4 }}>
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" style={{ margin: '0 auto 16px', display: 'block', opacity: .4 }}>
                 <path d="M6 2L4 7v13h16V7L18 2Z" /><path d="M8 10c0 2 1.8 4 4 4s4-2 4-4" />
               </svg>
               <div style={{ fontFamily: 'var(--f-display)', fontSize: 20 }}>Carrinho vazio</div>
@@ -753,35 +789,88 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
             </div>
           ) : items.map(item => (
             <div key={item.id} style={{ display: 'flex', gap: 12, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>
-              <img src={item.image} alt={item.name} style={{ width: 68, height: 68, objectFit: 'cover', background: 'var(--bg-2)', flexShrink: 0 }} />
+              <div style={{ width: 72, height: 72, flexShrink: 0, background: 'var(--bg-2)', overflow: 'hidden' }}>
+                {item.image ? (
+                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--border-2)" strokeWidth="1.2"><path d="M6 2L4 7v13h16V7L18 2Z" /><path d="M8 10c0 2 1.8 4 4 4s4-2 4-4" /></svg>
+                  </div>
+                )}
+              </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'var(--f-display)', fontSize: 15, fontWeight: 500, lineHeight: 1.3 }}>{item.name}</div>
                 <div style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: '.16em', textTransform: 'uppercase', marginTop: 3 }}>{item.category}</div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, gap: 8 }}>
                   <div className="kn-qty">
                     <button onClick={() => item.qty === 1 ? remove(item.id) : updateQty(item.id, item.qty - 1)}>−</button>
                     <span>{item.qty}</span>
                     <button onClick={() => updateQty(item.id, item.qty + 1)}>+</button>
                   </div>
-                  <span style={{ fontFamily: 'var(--f-display)', fontSize: 18, fontWeight: 600 }}>{fmt(item.price * item.qty)}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontFamily: 'var(--f-display)', fontSize: 17, fontWeight: 600 }}>{fmt(item.price * item.qty)}</span>
+                    <button onClick={() => remove(item.id)} title="Remover"
+                      style={{ background: 'transparent', border: 'none', color: 'var(--fg-mute)', cursor: 'pointer', padding: 4, lineHeight: 0, transition: 'color .15s' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = 'var(--bordo)')}
+                      onMouseLeave={e => (e.currentTarget.style.color = 'var(--fg-mute)')}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
+        {/* Footer */}
         {items.length > 0 && (
           <div style={{ padding: '20px 26px', borderTop: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <span style={{ fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-mute)' }}>Subtotal</span>
-              <span style={{ fontFamily: 'var(--f-display)', fontSize: 26, fontWeight: 600 }}>{fmt(total)}</span>
+
+            {/* Price breakdown */}
+            <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 13, color: 'var(--fg-mute)' }}>Subtotal</span>
+                <span style={{ fontSize: 15 }}>{fmt(subtotal)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 13, color: 'var(--fg-mute)' }}>Envio</span>
+                <span style={{ fontSize: 15, color: shipping === 0 ? 'var(--gold)' : 'var(--fg)' }}>
+                  {shipping === 0 ? 'Grátis 🎉' : fmt(shipping)}
+                </span>
+              </div>
+              <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-mute)' }}>Total</span>
+                <span style={{ fontFamily: 'var(--f-display)', fontSize: 26, fontWeight: 600 }}>{fmt(total)}</span>
+              </div>
             </div>
+
+            {/* Error */}
+            {checkoutError && (
+              <div style={{ marginBottom: 12, padding: '10px 14px', background: 'rgba(139,30,45,.12)', border: '1px solid rgba(139,30,45,.3)', fontSize: 13, color: '#e06070', lineHeight: 1.5 }}>
+                ⚠ {checkoutError}
+              </div>
+            )}
+
             <PrimaryBtn full onClick={handleCheckout} disabled={loading}>
-              {loading ? 'A processar...' : 'Finalizar Compra'}
+              {loading ? 'A redirecionar para pagamento…' : 'Finalizar Compra'}
             </PrimaryBtn>
-            <p style={{ fontSize: 11, color: 'var(--fg-mute)', textAlign: 'center', letterSpacing: '.06em', marginTop: 12 }}>
-              Envio grátis a partir de 150€ · Devolução em 30 dias
-            </p>
+
+            {/* Trust row */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 14, flexWrap: 'wrap' }}>
+              {[['🔒', 'Pagamento seguro'], ['↩', '30 dias devolução'], ['🚚', 'CTT / DPD']].map(([icon, label]) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--fg-mute)' }}>
+                  <span>{icon}</span><span>{label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Payment icons */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 12 }}>
+              {['VISA', 'MC', 'MB', 'MBWay', 'PayPal'].map(m => (
+                <span key={m} style={{ fontSize: 9, letterSpacing: '.1em', color: 'var(--fg-mute)', border: '1px solid var(--border)', padding: '3px 6px' }}>{m}</span>
+              ))}
+            </div>
           </div>
         )}
       </div>

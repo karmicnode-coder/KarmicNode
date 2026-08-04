@@ -1076,7 +1076,7 @@ function HomePage({ onAdd, onOpen, wishlist, toggleWish, setPage, products }: {
       <section style={{ padding: 'clamp(64px,8vw,110px) 0', borderBottom: '1px solid var(--border)' }}>
         <div className="wrap">
           <SectionHead eyebrow="Novidades" title="Novas <em class='gold-text'>chegadas</em>."
-            lead="Os produtos mais recentes, selecionados para o seu setup."
+            lead="As peças mais recentes, selecionadas com rigor para o seu guarda-roupa."
             cta={<GhostBtn onClick={() => setPage('shop')}>Ver todas as novidades</GhostBtn>} />
           <div className="kn-products-4">
             {ALL_PRODUCTS.slice(0, 4).map(p => <ProductCard key={p.id} p={p} onAdd={onAdd} onOpen={onOpen} wishlist={wishlist} toggleWish={toggleWish} />)}
@@ -1091,7 +1091,7 @@ function HomePage({ onAdd, onOpen, wishlist, toggleWish, setPage, products }: {
       <div style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', background: 'var(--bg-1)', overflow: 'hidden', padding: '16px 0' }}>
         <div className="ticker-track">
           {[...Array(2)].flatMap((_, ri) =>
-            ['Apple', 'Samsung', 'LG', 'Corsair', 'Logitech', 'Sony', 'TP-Link', 'Keychron', 'WD', 'Elgato', 'Rode', 'ASUS', 'Razer', 'Intel', 'AMD'].map(brand => (
+            ['Zara', 'H&M', 'Mango', 'Pull&Bear', 'Massimo Dutti', "Levi's", 'Nike', 'Adidas', 'Stradivarius', 'Reserved', 'COS', 'Arket', 'Weekday', 'Monki', 'Bershka'].map(brand => (
               <div key={`${brand}-${ri}`} style={{ display: 'flex', alignItems: 'center', gap: 24, paddingRight: 40 }}>
                 <span style={{ fontFamily: 'var(--f-display)', fontSize: 17, fontStyle: 'italic', color: 'var(--fg-mute)', whiteSpace: 'nowrap', letterSpacing: '.08em' }}>{brand}</span>
                 <span style={{ width: 4, height: 4, background: 'var(--gold)', borderRadius: '50%', flexShrink: 0 }} />
@@ -1143,7 +1143,7 @@ function HomePage({ onAdd, onOpen, wishlist, toggleWish, setPage, products }: {
             Fique a par das <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>melhores ofertas</em>.
           </h2>
           <p style={{ color: 'var(--fg-mute)', fontSize: 15, marginBottom: 34 }}>
-            Promoções exclusivas, novidades e dicas de tecnologia direto no seu email.
+            Promoções exclusivas, novas coleções e tendências de moda direto no seu email.
           </p>
           <NewsletterForm />
           <p style={{ fontSize: 11, color: 'var(--fg-mute)', marginTop: 14, letterSpacing: '.06em' }}>Sem spam. Pode cancelar a qualquer momento.</p>
@@ -1389,7 +1389,7 @@ function ProductPage({ product, onAdd, onBack, wishlist, toggleWish, allProducts
 
             {/* Trust mini */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              {[['🚚', 'Envio 24-48h'], ['↩', 'Devolução 30 dias'], ['🔒', 'Pagamento seguro'], ['💬', 'Suporte técnico']].map(([icon, label]) => (
+              {[['🚚', 'Envio 24-48h'], ['↩', 'Devolução 30 dias'], ['🔒', 'Pagamento seguro'], ['📏', 'Troca de tamanho']].map(([icon, label]) => (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', border: '1px solid var(--border)', background: 'var(--bg-1)' }}>
                   <span style={{ fontSize: 14 }}>{icon}</span>
                   <span style={{ fontSize: 12, color: 'var(--fg-dim)' }}>{label}</span>
@@ -1471,7 +1471,7 @@ function ProductPage({ product, onAdd, onBack, wishlist, toggleWish, allProducts
 // ─── ContactPage ──────────────────────────────────────────────────────────────
 
 function ContactPage() {
-  const [form, setForm] = useState({ nome: '', email: '', area: 'Informática', msg: '' })
+  const [form, setForm] = useState({ nome: '', email: '', area: 'Roupa & Moda', msg: '' })
   const [sent, setSent] = useState(false)
 
   return (
@@ -1483,7 +1483,7 @@ function ContactPage() {
             Vamos <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>conversar</em>.
           </h1>
           <p style={{ color: 'var(--fg-dim)', fontSize: 17, maxWidth: '56ch', lineHeight: 1.65 }}>
-            Tem dúvidas sobre um produto, precisa de assistência técnica ou quer pedir um orçamento? Estamos aqui.
+            Tem dúvidas sobre um produto, precisa de ajuda com trocas ou quer saber mais sobre a nossa coleção? Estamos aqui.
           </p>
         </div>
       </div>
@@ -1558,7 +1558,7 @@ function ContactPage() {
                   <label style={{ display: 'block', fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8, fontWeight: 500 }}>Área de interesse</label>
                   <select value={form.area} onChange={e => setForm(prev => ({ ...prev, area: e.target.value }))}
                     style={{ width: '100%', background: 'var(--bg-1)', border: 'none', borderBottom: '1px solid var(--border)', padding: '10px 0', color: 'var(--fg)', fontSize: 15, outline: 'none', appearance: 'none' }}>
-                    {['Informática', 'Multimédia', 'Loja — Compra', 'Suporte Técnico', 'Outro'].map(o => <option key={o}>{o}</option>)}
+                    {['Roupa & Moda', 'Loja — Compra', 'Trocas & Devoluções', 'Encomendas', 'Parcerias', 'Outro'].map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
 
@@ -1592,15 +1592,15 @@ function AboutPage({ setPage }: { setPage: (p: Page) => void }) {
             Uma equipa, uma <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>visão</em>.
           </h1>
           <p style={{ color: 'var(--fg-dim)', fontSize: 17, maxWidth: '60ch', lineHeight: 1.7 }}>
-            A Karmic Node nasceu com o objetivo de oferecer soluções profissionais nas áreas de Informática e Multimédia, reunindo competência técnica, criatividade e foco nas necessidades reais de cada cliente.
+            A Karmic Node nasceu com o objetivo de oferecer moda com identidade — peças atemporais, cuidadosamente selecionadas, que combinam estilo, qualidade e consciência. Uma marca feita para quem valoriza o que veste.
           </p>
         </div>
       </div>
 
       <div className="wrap" style={{ padding: '60px var(--pad-x) 80px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24, marginBottom: 60 }}>
-          {[['M.', 'Missão', 'Prestar serviços de informática e multimédia com qualidade, profissionalismo e proximidade, criando soluções úteis, modernas e adaptadas a cada cliente.'],
-            ['V.', 'Visão', 'Ser uma referência de confiança nas áreas de tecnologia e multimédia, destacando-nos pela qualidade, inovação e compromisso com os resultados.'],
+          {[['M.', 'Missão', 'Democratizar o acesso a moda de qualidade, oferecendo peças atemporais que transmitem confiança e identidade — com atenção ao detalhe e respeito pelo cliente.'],
+            ['V.', 'Visão', 'Ser uma referência portuguesa de moda consciente, reconhecida pela curadoria rigorosa, qualidade dos materiais e proximidade com quem nos escolhe.'],
             ['V.', 'Valores', 'Profissionalismo, Compromisso, Qualidade, Inovação, Proximidade, Rigor e Criatividade — em cada entrega, sem exceções.'],
           ].map(([k, h, p]) => (
             <div key={h} style={{ padding: '36px 28px', border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--bg-1) 0%,var(--bg) 100%)', position: 'relative' }}>
@@ -1720,7 +1720,7 @@ function BlogArticle({ post, onBack }: { post: BlogPost; onBack: () => void }) {
             </div>
             <div>
               <div style={{ fontFamily: 'var(--f-display)', fontSize: 17, fontWeight: 500 }}>{post.author}</div>
-              <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginTop: 2 }}>Equipa Karmic Node · Tecnologia &amp; Multimédia</div>
+              <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginTop: 2 }}>Equipa Karmic Node · Moda &amp; Estilo</div>
             </div>
           </div>
         </div>
@@ -1753,10 +1753,10 @@ function BlogPage() {
         <div style={{ maxWidth: 'var(--maxw)', margin: '0 auto' }}>
           <Eyebrow text="Blog" />
           <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(44px,6vw,88px)', fontWeight: 500, margin: '20px 0 20px', lineHeight: 1.05 }}>
-            Tecnologia em <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>foco</em>.
+            Moda em <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>foco</em>.
           </h1>
           <p style={{ color: 'var(--fg-dim)', fontSize: 17, maxWidth: '52ch', lineHeight: 1.65, marginBottom: 36 }}>
-            Guias, análises e novidades sobre informática, periféricos e multimédia — escritos pela equipa Karmic Node.
+            Tendências, guias de estilo e dicas de moda — escritos pela equipa Karmic Node.
           </p>
           {/* Search */}
           <div style={{ display: 'flex', border: '1px solid var(--border)', background: 'var(--bg-2)', maxWidth: 440 }}
@@ -1850,7 +1850,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
               </span>
             </div>
             <p style={{ color: 'var(--fg-mute)', fontSize: 14, lineHeight: 1.7, maxWidth: '30ch', marginBottom: 22 }}>
-              Informática e Multimédia com qualidade, estratégia e profissionalismo. Cartaxo, Portugal.
+              Moda com alma. Peças atemporais, selecionadas com rigor. Cartaxo, Portugal.
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               {['instagram', 'facebook', 'linkedin'].map(s => (
@@ -1868,8 +1868,8 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
           </div>
 
           {[
-            { title: 'Loja', links: [{ l: 'Portáteis', p: 'shop' }, { l: 'Monitores', p: 'shop' }, { l: 'Periféricos', p: 'shop' }, { l: 'Áudio', p: 'shop' }, { l: 'Networking', p: 'shop' }, { l: 'Promoções', p: 'shop' }] as { l: string; p: Page }[] },
-            { title: 'Empresa', links: [{ l: 'Quem Somos', p: 'about' }, { l: 'Portfólio', p: 'about' }, { l: 'Blog', p: 'blog' }, { l: 'Assistência', p: 'contact' }, { l: 'Parcerias', p: 'contact' }, { l: 'Contacto', p: 'contact' }] as { l: string; p: Page }[] },
+            { title: 'Loja', links: [{ l: 'Tops', p: 'shop' }, { l: 'Calças', p: 'shop' }, { l: 'Vestidos', p: 'shop' }, { l: 'Casacos', p: 'shop' }, { l: 'Acessórios', p: 'shop' }, { l: 'Promoções', p: 'shop' }] as { l: string; p: Page }[] },
+            { title: 'Empresa', links: [{ l: 'Quem Somos', p: 'about' }, { l: 'Lookbook', p: 'about' }, { l: 'Blog', p: 'blog' }, { l: 'Sustentabilidade', p: 'about' }, { l: 'Parcerias', p: 'contact' }, { l: 'Contacto', p: 'contact' }] as { l: string; p: Page }[] },
             { title: 'Apoio', links: [{ l: 'FAQ', p: 'home' }, { l: 'Política de Envio', p: 'home' }, { l: 'Devoluções', p: 'home' }, { l: 'Garantia', p: 'home' }, { l: 'Privacidade', p: 'home' }, { l: 'Termos', p: 'home' }] as { l: string; p: Page }[] },
           ].map(col => (
             <div key={col.title}>

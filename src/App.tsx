@@ -1579,7 +1579,7 @@ function ContactPage() {
                   if (!form.nome || !form.email || !form.msg) return
                   setLoading(true); setError('')
                   try {
-                    const r = await fetch(FORMSPREE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ Nome: form.nome, Email: form.email, Área: form.area, Mensagem: form.msg }) })
+                    const r = await fetch(FORMSPREE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ nome: form.nome, email: form.email, area: form.area, mensagem: form.msg }) })
                     if (r.ok) { setSent(true) } else { setError('Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com') }
                   } catch { setError('Erro de rede. Verifique a ligação e tente novamente.') }
                   setLoading(false)
@@ -1631,7 +1631,7 @@ function AboutPage({ setPage }: { setPage: (p: Page) => void }) {
           <h2 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(28px,3vw,44px)', fontWeight: 500, margin: '20px 0 16px' }}>
             Confiança construída em cada <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>detalhe</em>.
           </h2>
-          <p style={{ color: 'var(--fg-dim)', fontSize: 16, marginBottom: 34, maxWidth: '44ch', margin: '0 auto 34px' }}>
+          <p style={{ color: 'var(--fg-dim)', fontSize: 16, maxWidth: '44ch', margin: '0 auto 34px' }}>
             Descubra os nossos produtos e serviços — ou fale diretamente connosco.
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -1939,13 +1939,13 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
-          Nome: name, Email: email, Telefone: phone || '—',
-          Artigo: garmentLabel, Material: fabricLabel, Técnica: printLabel,
-          'Cor base': color, Quantidade: `${qty} unidades`,
-          'Estimativa unitária': p ? `${p.unit}€` : '—',
-          'Estimativa total': p ? `${p.total}€` : '—',
-          Notas: notes || '—',
-          Formulário: 'Roupa Personalizada',
+          nome: name, email, telefone: phone || '—',
+          artigo: garmentLabel, material: fabricLabel, tecnica: printLabel,
+          cor_base: color, quantidade: `${qty} unidades`,
+          estimativa_unitaria: p ? `${p.unit}€` : '—',
+          estimativa_total: p ? `${p.total}€` : '—',
+          notas: notes || '—',
+          formulario: 'Roupa Personalizada',
         }),
       })
       if (r.ok) { setSent(true) } else { setError('Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com') }
@@ -2010,7 +2010,7 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
           <SectionHead eyebrow="Configurador" title="Cria a tua <em class='gold-text'>peça única</em>." lead="Personaliza passo a passo e obtém uma estimativa de preço em tempo real." />
 
           {sent ? (
-            <div style={{ marginTop: 52, maxWidth: 580, margin: '52px auto 0', textAlign: 'center', padding: 'clamp(48px,6vw,72px)', border: '1px solid var(--gold-3)', background: 'var(--bg-1)' }}>
+            <div style={{ maxWidth: 580, margin: '52px auto 0', textAlign: 'center', padding: 'clamp(48px,6vw,72px)', border: '1px solid var(--gold-3)', background: 'var(--bg-1)' }}>
               <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.2" style={{ margin: '0 auto 24px' }}>
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
               </svg>
@@ -2224,7 +2224,7 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                           ✓ Desconto de quantidade aplicado ({qty >= 50 ? '15%' : qty >= 20 ? '10%' : '5%'} off)
                         </div>
                       )}
-                      <p style={{ fontSize: 10, color: 'var(--fg-mute)', marginTop: 12, lineHeight: 1.6, margin: '12px 0 0' }}>*Estimativa indicativa. O preço final é confirmado após análise do pedido.</p>
+                      <p style={{ fontSize: 10, color: 'var(--fg-mute)', margin: '12px 0 0', lineHeight: 1.6 }}>*Estimativa indicativa. O preço final é confirmado após análise do pedido.</p>
                     </div>
                   ) : (
                     <div style={{ marginTop: 20, padding: '16px', background: 'rgba(176,141,87,.05)', border: '1px dashed var(--border)', textAlign: 'center', color: 'var(--fg-mute)', fontSize: 13 }}>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
+import React, { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -6,6 +6,7 @@ type Page = 'home' | 'shop' | 'product' | 'contact' | 'about' | 'blog'
 
 interface Product {
   id: number
+  stripeId?: string
   name: string
   category: string
   tags: string[]
@@ -947,10 +948,10 @@ function HomeTesti({ t }: { t: { q: string; name: string; role: string; rating: 
   )
 }
 
-function HomePage({ onAdd, onOpen, wishlist, toggleWish, setPage }: {
+function HomePage({ onAdd, onOpen, wishlist, toggleWish, setPage, products }: {
   onAdd: (p: Product) => void; onOpen: (p: Product) => void
   wishlist: Set<number>; toggleWish: (id: number) => void
-  setPage: (p: Page) => void
+  setPage: (p: Page) => void; products: Product[]
 }) {
   const CATS = [
     { name: 'Portáteis', count: 24, icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="3" y="4" width="18" height="12" rx="1" /><path d="M2 20h20M9 16v4M15 16v4" /></svg> },
@@ -1024,7 +1025,7 @@ function HomePage({ onAdd, onOpen, wishlist, toggleWish, setPage }: {
                       <span style={{ fontSize: 10, color: 'var(--fg-mute)' }}>(128 avaliações)</span>
                     </div>
                   </div>
-                  <button onClick={() => onAdd(ALL_PRODUCTS[0])}
+                  <button onClick={() => products[0] && onAdd(products[0])}
                     style={{ padding: '9px 14px', background: 'var(--bordo)', border: 'none', color: '#F5F2ED', fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 500, flexShrink: 0, whiteSpace: 'nowrap' }}>
                     {fmt(1899)}
                   </button>
@@ -1050,7 +1051,7 @@ function HomePage({ onAdd, onOpen, wishlist, toggleWish, setPage }: {
       </section>
 
       {/* BESTSELLERS CAROUSEL */}
-      <ProductCarousel eyebrow="Bestsellers" title="Mais <em class='gold-text'>vendidos</em>." products={ALL_PRODUCTS} onAdd={onAdd} onOpen={onOpen} wishlist={wishlist} toggleWish={toggleWish} />
+      <ProductCarousel eyebrow="Bestsellers" title="Mais <em class='gold-text'>vendidos</em>." products={products} onAdd={onAdd} onOpen={onOpen} wishlist={wishlist} toggleWish={toggleWish} />
 
       {/* PROMO BANNER */}
       <section style={{ position: 'relative', overflow: 'hidden', background: `radial-gradient(900px 500px at 25% 50%, rgba(139,30,45,0.45), transparent 65%), var(--bg-2)`, borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: 'clamp(56px,7vw,96px) 0' }}>
@@ -1089,7 +1090,7 @@ function HomePage({ onAdd, onOpen, wishlist, toggleWish, setPage }: {
       </section>
 
       {/* ACCESSORIES CAROUSEL */}
-      <ProductCarousel eyebrow="Acessórios" title="Acessórios <em class='gold-text'>essenciais</em>." products={[...ALL_PRODUCTS].reverse()} onAdd={onAdd} onOpen={onOpen} wishlist={wishlist} toggleWish={toggleWish} />
+      <ProductCarousel eyebrow="Acessórios" title="Acessórios <em class='gold-text'>essenciais</em>." products={[...products].reverse()} onAdd={onAdd} onOpen={onOpen} wishlist={wishlist} toggleWish={toggleWish} />
 
       {/* BRAND TICKER */}
       <div style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', background: 'var(--bg-1)', overflow: 'hidden', padding: '16px 0' }}>
@@ -1159,10 +1160,10 @@ function HomePage({ onAdd, onOpen, wishlist, toggleWish, setPage }: {
 
 // ─── ShopPage ─────────────────────────────────────────────────────────────────
 
-function ShopPage({ onAdd, onOpen, wishlist, toggleWish, initialCategory }: {
+function ShopPage({ onAdd, onOpen, wishlist, toggleWish, initialCategory, products }: {
   onAdd: (p: Product) => void; onOpen: (p: Product) => void
   wishlist: Set<number>; toggleWish: (id: number) => void
-  initialCategory?: string
+  initialCategory?: string; products: Product[]
 }) {
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState(
@@ -1172,7 +1173,7 @@ function ShopPage({ onAdd, onOpen, wishlist, toggleWish, initialCategory }: {
   const [sort, setSort] = useState('relevance')
   const [maxPrice, setMaxPrice] = useState(2200)
 
-  const filtered = ALL_PRODUCTS
+  const filtered = products
     .filter(p => {
       if (activeCategory !== 'Todos' && p.category !== activeCategory) return false
       if (showPromoOnly && !p.originalPrice) return false
@@ -1225,7 +1226,7 @@ function ShopPage({ onAdd, onOpen, wishlist, toggleWish, initialCategory }: {
                     {activeCategory === cat && !showPromoOnly && <span style={{ width: 16, height: 1, background: 'var(--gold)', flexShrink: 0 }} />}
                     {cat}
                     <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--fg-mute)' }}>
-                      ({cat === 'Todos' ? ALL_PRODUCTS.length : ALL_PRODUCTS.filter(p => p.category === cat).length})
+                      ({cat === 'Todos' ? products.length : products.filter(p => p.category === cat).length})
                     </span>
                   </button>
                 ))}
@@ -1234,7 +1235,7 @@ function ShopPage({ onAdd, onOpen, wishlist, toggleWish, initialCategory }: {
                   {showPromoOnly && <span style={{ width: 16, height: 1, background: 'var(--gold)', flexShrink: 0 }} />}
                   Promoções
                   <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--fg-mute)' }}>
-                    ({ALL_PRODUCTS.filter(p => p.originalPrice).length})
+                    ({products.filter(p => p.originalPrice).length})
                   </span>
                 </button>
               </div>
@@ -1969,7 +1970,15 @@ export default function App() {
   const [wishlist, setWishlist] = useState<Set<number>>(new Set())
   const [toast, setToast] = useState<string | null>(null)
   const [backTop, setBackTop] = useState(false)
+  const [liveProducts, setLiveProducts] = useState<Product[]>(ALL_PRODUCTS)
   const toastTimer = useRef<number | null>(null)
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.products?.length) setLiveProducts(data.products) })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     const h = () => setBackTop(window.scrollY > 400)
@@ -2033,7 +2042,7 @@ export default function App() {
 
   const cartCount = cartItems.reduce((s, i) => s + i.qty, 0)
 
-  const sharedProps = { onAdd: addToCart, onOpen: openProduct, wishlist, toggleWish }
+  const sharedProps = { onAdd: addToCart, onOpen: openProduct, wishlist, toggleWish, products: liveProducts }
 
   return (
     <div style={{ background: 'var(--bg)', color: 'var(--fg)', minHeight: '100vh' }}>
@@ -2042,7 +2051,7 @@ export default function App() {
       {activePage === 'home' && <HomePage {...sharedProps} setPage={setPage} />}
       {activePage === 'shop' && <ShopPage key={shopFilter} {...sharedProps} initialCategory={shopFilter} />}
       {activePage === 'product' && activeProduct && (
-        <ProductPage product={activeProduct} {...sharedProps} onBack={() => setPage('shop')} allProducts={ALL_PRODUCTS} />
+        <ProductPage product={activeProduct} {...sharedProps} onBack={() => setPage('shop')} allProducts={liveProducts} />
       )}
       {activePage === 'contact' && <ContactPage />}
       {activePage === 'about' && <AboutPage setPage={setPage} />}

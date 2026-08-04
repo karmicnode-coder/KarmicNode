@@ -13,17 +13,22 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'No items' })
   }
 
-  const line_items = items.map((item) => ({
-    price_data: {
-      currency: 'eur',
-      product_data: {
-        name: item.name,
-        images: item.image ? [item.image] : [],
+  const line_items = items.map((item) => {
+    if (item.stripeId) {
+      return { price: item.stripeId, quantity: item.qty }
+    }
+    return {
+      price_data: {
+        currency: 'eur',
+        product_data: {
+          name: item.name,
+          images: item.image ? [item.image] : [],
+        },
+        unit_amount: Math.round(item.price * 100),
       },
-      unit_amount: Math.round(item.price * 100),
-    },
-    quantity: item.qty,
-  }))
+      quantity: item.qty,
+    }
+  })
 
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ['card'],

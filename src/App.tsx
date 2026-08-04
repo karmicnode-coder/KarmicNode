@@ -1473,11 +1473,19 @@ function ProductPage({ product, onAdd, onBack, wishlist, toggleWish, allProducts
 
 const FORMSPREE_URL = 'https://formspree.io/f/xeeyzlvb'
 
+async function submitToFormspree(data: Record<string, string>) {
+  const fd = new FormData()
+  Object.entries(data).forEach(([k, v]) => fd.append(k, v))
+  const r = await fetch(FORMSPREE_URL, { method: 'POST', headers: { Accept: 'application/json' }, body: fd })
+  if (!r.ok) throw new Error('Formspree error')
+}
+
 function ContactPage() {
   const [form, setForm] = useState({ nome: '', email: '', area: 'Roupa & Moda', msg: '' })
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [fieldError, setFieldError] = useState('')
 
   return (
     <div style={{ minHeight: '80vh' }}>
@@ -1575,16 +1583,19 @@ function ContactPage() {
                     onBlur={e => (e.currentTarget.style.borderBottomColor = 'var(--border)')} />
                 </div>
 
+                {fieldError && <p style={{ marginBottom: 12, fontSize: 13, color: 'var(--bordo)', lineHeight: 1.5 }}>⚠ {fieldError}</p>}
                 <PrimaryBtn full onClick={async () => {
-                  if (!form.nome || !form.email || !form.msg) return
-                  setLoading(true); setError('')
+                  if (!form.nome) { setFieldError('Por favor preencha o seu nome.'); return }
+                  if (!form.email) { setFieldError('Por favor preencha o seu email.'); return }
+                  if (!form.msg) { setFieldError('Por favor escreva uma mensagem.'); return }
+                  setFieldError(''); setLoading(true); setError('')
                   try {
-                    const r = await fetch(FORMSPREE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ nome: form.nome, email: form.email, area: form.area, mensagem: form.msg }) })
-                    if (r.ok) { setSent(true) } else { setError('Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com') }
-                  } catch { setError('Erro de rede. Verifique a ligação e tente novamente.') }
+                    await submitToFormspree({ nome: form.nome, email: form.email, area: form.area, mensagem: form.msg })
+                    setSent(true)
+                  } catch { setError('Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com') }
                   setLoading(false)
                 }}>{loading ? 'A enviar…' : 'Enviar Pedido'}</PrimaryBtn>
-                {error && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--bordo)', lineHeight: 1.5 }}>{error}</p>}
+                {error && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--bordo)', lineHeight: 1.5 }}>⚠ {error}</p>}
               </>
             )}
           </div>
@@ -1935,21 +1946,17 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
     const printLabel = CUSTOM_PRINTS.find(p => p.id === printType)?.label ?? printType
     const p = estimatePrice()
     try {
-      const r = await fetch(FORMSPREE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          nome: name, email, telefone: phone || '—',
-          artigo: garmentLabel, material: fabricLabel, tecnica: printLabel,
-          cor_base: color, quantidade: `${qty} unidades`,
-          estimativa_unitaria: p ? `${p.unit}€` : '—',
-          estimativa_total: p ? `${p.total}€` : '—',
-          notas: notes || '—',
-          formulario: 'Roupa Personalizada',
-        }),
+      await submitToFormspree({
+        nome: name, email, telefone: phone || '—',
+        artigo: garmentLabel, material: fabricLabel, tecnica: printLabel,
+        cor_base: color, quantidade: `${qty} unidades`,
+        estimativa_unitaria: p ? `${p.unit}€` : '—',
+        estimativa_total: p ? `${p.total}€` : '—',
+        notas: notes || '—',
+        formulario: 'Roupa Personalizada',
       })
-      if (r.ok) { setSent(true) } else { setError('Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com') }
-    } catch { setError('Erro de rede. Verifique a ligação e tente novamente.') }
+      setSent(true)
+    } catch { setError('Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com') }
     setLoading(false)
   }
 

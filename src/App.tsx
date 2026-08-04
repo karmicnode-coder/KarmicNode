@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, type ReactNode } from 
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type Page = 'home' | 'shop' | 'product' | 'contact' | 'about' | 'blog'
+type Page = 'home' | 'shop' | 'product' | 'contact' | 'about' | 'blog' | 'custom'
 
 interface Product {
   id: number
@@ -483,9 +483,9 @@ const CATEGORIES_LIST = ['Todos', 'Tops', 'Calças', 'Vestidos', 'Casacos', 'Cal
 const NAV_LINKS: { label: string; page: Page; filter?: string }[] = [
   { label: 'Início', page: 'home' },
   { label: 'Loja', page: 'shop' },
-  { label: 'Promoções', page: 'shop', filter: 'promo' },
+  { label: 'Personalizada', page: 'custom' },
   { label: 'Blog', page: 'blog' },
-  { label: 'Assistência', page: 'contact' },
+  { label: 'Contacto', page: 'contact' },
 ]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -891,6 +891,7 @@ function Header({ activePage, shopFilter, navigate, cartCount, openCart }: {
         <div style={{ marginTop: 16, paddingTop: 24, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
           <a href="#" onClick={e => { e.preventDefault(); navigate('about'); setNavOpen(false) }} style={{ fontSize: 14, color: 'var(--fg-mute)', letterSpacing: '.14em', textTransform: 'uppercase' }}>Quem Somos</a>
           <a href="#" onClick={e => { e.preventDefault(); navigate('contact'); setNavOpen(false) }} style={{ fontSize: 14, color: 'var(--fg-mute)', letterSpacing: '.14em', textTransform: 'uppercase' }}>Contacto</a>
+          <a href="#" onClick={e => { e.preventDefault(); navigate('custom'); setNavOpen(false) }} style={{ fontSize: 14, color: 'var(--gold)', letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600 }}>✦ Personalizada</a>
         </div>
       </nav>
     </>
@@ -1831,6 +1832,480 @@ function BlogPage() {
   )
 }
 
+// ─── CustomPage ───────────────────────────────────────────────────────────────
+
+const CUSTOM_GARMENTS = [
+  { id: 'tshirt', label: 'T-Shirt', icon: '👕', desc: 'Corte reto, unissexo ou fit' },
+  { id: 'hoodie', label: 'Hoodie', icon: '🧥', desc: 'Com capuz, bolso canguru' },
+  { id: 'polo', label: 'Polo', icon: '👔', desc: 'Elegante, com gola' },
+  { id: 'sweat', label: 'Sweatshirt', icon: '🥋', desc: 'Sem capuz, clássica' },
+  { id: 'cap', label: 'Boné', icon: '🧢', desc: 'Snapback ou strapback' },
+  { id: 'bag', label: 'Tote Bag', icon: '👜', desc: 'Algodão 100%, resistente' },
+]
+
+const CUSTOM_FABRICS = [
+  { id: 'cotton', label: 'Algodão 100%', note: 'Respirável · Durável' },
+  { id: 'cotton_poly', label: 'Algodão/Poliéster', note: 'Anti-rugas · Económico' },
+  { id: 'organic', label: 'Algodão Orgânico', note: 'Sustentável · Certificado' },
+  { id: 'premium', label: 'Premium Pima', note: 'Suave · Luxo' },
+]
+
+const CUSTOM_PRINTS = [
+  { id: 'embroidery', label: 'Bordado', note: 'Elegante · Alta durabilidade' },
+  { id: 'dtg', label: 'Impressão DTG', note: 'Cores vivas · Foto-realismo' },
+  { id: 'screen', label: 'Serigrafia', note: 'Ideal ≥ 20 unidades' },
+  { id: 'heat', label: 'Vinil Térmico', note: 'Acabamento premium' },
+  { id: 'patch', label: 'Patch / Etiqueta', note: 'Look exclusivo' },
+]
+
+const CUSTOM_COLORS = [
+  '#F5F2ED', '#0B0B0C', '#8B1E2D', '#B08D57',
+  '#1a3a5c', '#2d5a27', '#5c3317', '#6b4f7e',
+  '#c94b2d', '#e8c84a', '#2a7a8c', '#808080',
+]
+
+const GALLERY_ITEMS = [
+  { img: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600&h=700&fit=crop', label: 'T-Shirt Bordada', cat: 'Bordado' },
+  { img: 'https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&h=700&fit=crop', label: 'Hoodie Personalizado', cat: 'Impressão DTG' },
+  { img: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600&h=700&fit=crop', label: 'Polo Premium', cat: 'Bordado' },
+  { img: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=600&h=700&fit=crop', label: 'Sweatshirt Equipa', cat: 'Serigrafia' },
+  { img: 'https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?w=600&h=700&fit=crop', label: 'Boné Personalizado', cat: 'Bordado' },
+  { img: 'https://images.unsplash.com/photo-1597248374161-426f0d6d2fc9?w=600&h=700&fit=crop', label: 'Tote Bag Exclusiva', cat: 'Impressão DTG' },
+]
+
+const CUSTOM_FAQS = [
+  { q: 'Qual o mínimo de unidades?', a: 'Para a maioria das técnicas aceitamos a partir de 1 unidade. Para serigrafia, o mínimo são 20 unidades para manter o preço competitivo.' },
+  { q: 'Que formatos de ficheiro aceitam?', a: 'Aceitamos ficheiros vetoriais (AI, EPS, SVG, PDF) e raster de alta resolução (PNG/JPG a 300dpi no mínimo). Para bordado, utilizamos os seus ficheiros e fazemos a digitalização incluída no serviço.' },
+  { q: 'Qual é o prazo de produção?', a: 'O prazo standard é de 10 a 15 dias úteis após aprovação da prova. Temos serviço urgente (5-7 dias úteis) com acréscimo de 30%.' },
+  { q: 'É possível ver uma prova antes da produção?', a: 'Sim. Enviamos sempre uma prova digital para aprovação antes de iniciarmos a produção. Para encomendas ≥ 50 unidades, podemos enviar uma amostra física.' },
+  { q: 'Fazem envio para todo o Portugal?', a: 'Sim, enviamos para Portugal Continental e Ilhas. Para encomendas empresariais, disponibilizamos envio para a Europa.' },
+]
+
+function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
+  const [step, setStep] = useState(1)
+  const [garment, setGarment] = useState('')
+  const [fabric, setFabric] = useState('')
+  const [printType, setPrintType] = useState('')
+  const [color, setColor] = useState('#0B0B0C')
+  const [qty, setQty] = useState(10)
+  const [notes, setNotes] = useState('')
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [sent, setSent] = useState(false)
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+
+  const canNext1 = !!garment
+  const canNext2 = !!fabric
+  const canNext3 = !!printType
+  const canSubmit = name.trim() && email.trim()
+
+  const estimatePrice = () => {
+    if (!garment || !fabric || !printType) return null
+    const base: Record<string, number> = { tshirt: 12, hoodie: 28, polo: 18, sweat: 22, cap: 9, bag: 7 }
+    const fabricMult: Record<string, number> = { cotton: 1, cotton_poly: 0.9, organic: 1.2, premium: 1.5 }
+    const printAdd: Record<string, number> = { embroidery: 6, dtg: 4, screen: qty < 20 ? 8 : 2, heat: 5, patch: 7 }
+    const unit = (base[garment] || 15) * (fabricMult[fabric] || 1) + (printAdd[printType] || 0)
+    const discount = qty >= 50 ? 0.85 : qty >= 20 ? 0.9 : qty >= 10 ? 0.95 : 1
+    return { unit: +(unit * discount).toFixed(2), total: +(unit * discount * qty).toFixed(2) }
+  }
+
+  const price = estimatePrice()
+
+  const handleSubmit = () => {
+    if (!canSubmit) return
+    setSent(true)
+  }
+
+  return (
+    <div style={{ minHeight: '100vh' }}>
+
+      {/* HERO */}
+      <div style={{ position: 'relative', overflow: 'hidden', minHeight: 'clamp(420px,55vh,640px)', display: 'flex', alignItems: 'center' }}>
+        <img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1600&h=900&fit=crop&auto=format" alt="Roupa personalizada" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(105deg, rgba(11,11,12,.92) 45%, rgba(11,11,12,.4) 100%)' }} />
+        <div className="wrap" style={{ position: 'relative', zIndex: 2, padding: 'clamp(64px,8vw,100px) var(--pad-x)' }}>
+          <div style={{ maxWidth: 680 }}>
+            <Eyebrow text="Roupa Personalizada" />
+            <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(42px,6vw,84px)', fontWeight: 500, margin: '20px 0 22px', lineHeight: 1.05 }}>
+              A tua marca,<br />
+              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>a tua peça.</em>
+            </h1>
+            <p style={{ color: 'rgba(245,242,237,.75)', fontSize: 17, maxWidth: '48ch', lineHeight: 1.7, marginBottom: 38 }}>
+              Criamos roupa personalizada para empresas, eventos, equipas e projetos individuais. Do design à entrega — tratamos de tudo.
+            </p>
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+              <PrimaryBtn onClick={() => document.getElementById('configurador')?.scrollIntoView({ behavior: 'smooth' })}>
+                Configurar agora
+              </PrimaryBtn>
+              <GhostBtn onClick={() => document.getElementById('galeria')?.scrollIntoView({ behavior: 'smooth' })}>
+                Ver exemplos
+              </GhostBtn>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* COMO FUNCIONA */}
+      <section style={{ padding: 'clamp(64px,7vw,96px) 0', background: 'var(--bg-1)', borderBottom: '1px solid var(--border)' }}>
+        <div className="wrap">
+          <SectionHead eyebrow="Processo" title="Como <em class='gold-text'>funciona</em>." lead="Simples, rápido e sem complicações — da ideia à peça final em 4 passos." />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0, marginTop: 52, border: '1px solid var(--border)' }}>
+            {[
+              { n: '01', title: 'Configura', desc: 'Escolhe o artigo, tecido, técnica de personalização e cores no nosso configurador.' },
+              { n: '02', title: 'Pede orçamento', desc: 'Submete o pedido com o teu design ou ideia. Respondemos em 24h com proposta.' },
+              { n: '03', title: 'Aprova a prova', desc: 'Enviamos uma prova digital (ou física ≥50 unid.) antes de iniciar a produção.' },
+              { n: '04', title: 'Recebe', desc: 'Produção em 10-15 dias úteis. Entregamos em qualquer ponto de Portugal.' },
+            ].map((s, i) => (
+              <div key={s.n} style={{ padding: 'clamp(28px,3vw,44px) clamp(20px,2.5vw,36px)', borderRight: i < 3 ? '1px solid var(--border)' : 'none', position: 'relative' }}>
+                <div style={{ fontFamily: 'var(--f-display)', fontStyle: 'italic', fontSize: 56, color: 'rgba(176,141,87,.12)', fontWeight: 600, lineHeight: 1, marginBottom: 16, userSelect: 'none' }}>{s.n}</div>
+                <div style={{ position: 'absolute', top: 28, left: 'clamp(20px,2.5vw,36px)', fontFamily: 'var(--f-sans)', fontSize: 10, letterSpacing: '.24em', color: 'var(--gold)', fontWeight: 600, textTransform: 'uppercase' }}>{s.n}</div>
+                <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 22, fontWeight: 500, marginBottom: 10, marginTop: -12 }}>{s.title}</h3>
+                <p style={{ color: 'var(--fg-dim)', fontSize: 14, lineHeight: 1.7, margin: 0 }}>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CONFIGURADOR */}
+      <section id="configurador" style={{ padding: 'clamp(64px,7vw,100px) 0', borderBottom: '1px solid var(--border)' }}>
+        <div className="wrap">
+          <SectionHead eyebrow="Configurador" title="Cria a tua <em class='gold-text'>peça única</em>." lead="Personaliza passo a passo e obtém uma estimativa de preço em tempo real." />
+
+          {sent ? (
+            <div style={{ marginTop: 52, maxWidth: 580, margin: '52px auto 0', textAlign: 'center', padding: 'clamp(48px,6vw,72px)', border: '1px solid var(--gold-3)', background: 'var(--bg-1)' }}>
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.2" style={{ margin: '0 auto 24px' }}>
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+              <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 32, marginBottom: 14 }}>Pedido enviado!</h3>
+              <p style={{ color: 'var(--fg-dim)', fontSize: 15, lineHeight: 1.7, marginBottom: 28 }}>Entraremos em contacto em menos de 24 horas com uma proposta personalizada para o seu projeto.</p>
+              <PrimaryBtn onClick={() => { setSent(false); setStep(1); setGarment(''); setFabric(''); setPrintType(''); setNotes(''); setName(''); setEmail(''); setPhone('') }}>
+                Novo pedido
+              </PrimaryBtn>
+            </div>
+          ) : (
+            <div style={{ marginTop: 52, display: 'grid', gridTemplateColumns: '1fr 340px', gap: 32, alignItems: 'start' }}>
+
+              {/* Steps */}
+              <div style={{ border: '1px solid var(--border)', background: 'var(--bg-1)' }}>
+                {/* Progress bar */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid var(--border)' }}>
+                  {['Artigo', 'Material', 'Técnica', 'Contacto'].map((label, i) => {
+                    const s = i + 1
+                    const done = step > s
+                    const active = step === s
+                    return (
+                      <button key={label} onClick={() => { if (done || active) setStep(s) }}
+                        style={{ padding: '18px 12px', background: active ? 'rgba(176,141,87,.08)' : 'transparent', border: 'none', borderRight: i < 3 ? '1px solid var(--border)' : 'none', cursor: done ? 'pointer' : active ? 'default' : 'not-allowed', borderBottom: active ? '2px solid var(--gold)' : '2px solid transparent', transition: 'all .2s' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                          <span style={{ width: 20, height: 20, borderRadius: '50%', background: done ? 'var(--gold)' : active ? 'var(--bordo)' : 'var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: done || active ? '#fff' : 'var(--fg-mute)', flexShrink: 0 }}>
+                            {done ? '✓' : s}
+                          </span>
+                          <span style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: active ? 'var(--gold)' : done ? 'var(--fg)' : 'var(--fg-mute)', fontWeight: active ? 600 : 400 }}>{label}</span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div style={{ padding: 'clamp(28px,3.5vw,44px)' }}>
+
+                  {/* STEP 1 — Artigo */}
+                  {step === 1 && (
+                    <div>
+                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>Que artigo queres personalizar?</h3>
+                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>Escolhe o tipo de peça para o teu projeto.</p>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+                        {CUSTOM_GARMENTS.map(g => (
+                          <button key={g.id} onClick={() => setGarment(g.id)}
+                            style={{ padding: '20px 14px', border: `1px solid ${garment === g.id ? 'var(--gold)' : 'var(--border)'}`, background: garment === g.id ? 'rgba(176,141,87,.08)' : 'transparent', cursor: 'pointer', textAlign: 'center', transition: 'all .2s ease', position: 'relative' }}>
+                            {garment === g.id && <div style={{ position: 'absolute', top: 8, right: 8, width: 16, height: 16, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 8, color: '#0B0B0C', fontWeight: 800 }}>✓</span></div>}
+                            <div style={{ fontSize: 28, marginBottom: 8 }}>{g.icon}</div>
+                            <div style={{ fontFamily: 'var(--f-display)', fontSize: 15, fontWeight: 500, marginBottom: 4, color: garment === g.id ? 'var(--gold)' : 'var(--fg)' }}>{g.label}</div>
+                            <div style={{ fontSize: 11, color: 'var(--fg-mute)' }}>{g.desc}</div>
+                          </button>
+                        ))}
+                      </div>
+                      <div style={{ marginTop: 28, display: 'flex', justifyContent: 'flex-end' }}>
+                        <PrimaryBtn onClick={() => { if (canNext1) setStep(2) }}>
+                          Continuar →
+                        </PrimaryBtn>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 2 — Material */}
+                  {step === 2 && (
+                    <div>
+                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>Qual o material?</h3>
+                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>O tecido define o conforto, durabilidade e toque da peça.</p>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {CUSTOM_FABRICS.map(f => (
+                          <button key={f.id} onClick={() => setFabric(f.id)}
+                            style={{ padding: '18px 20px', border: `1px solid ${fabric === f.id ? 'var(--gold)' : 'var(--border)'}`, background: fabric === f.id ? 'rgba(176,141,87,.08)' : 'transparent', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all .2s ease' }}>
+                            <div>
+                              <div style={{ fontFamily: 'var(--f-display)', fontSize: 16, color: fabric === f.id ? 'var(--gold)' : 'var(--fg)', marginBottom: 3 }}>{f.label}</div>
+                              <div style={{ fontSize: 12, color: 'var(--fg-mute)' }}>{f.note}</div>
+                            </div>
+                            <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${fabric === f.id ? 'var(--gold)' : 'var(--border)'}`, background: fabric === f.id ? 'var(--gold)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              {fabric === f.id && <span style={{ fontSize: 8, color: '#0B0B0C', fontWeight: 800 }}>✓</span>}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                      <div style={{ marginTop: 28, display: 'flex', justifyContent: 'space-between' }}>
+                        <GhostBtn onClick={() => setStep(1)}>← Voltar</GhostBtn>
+                        <PrimaryBtn onClick={() => { if (canNext2) setStep(3) }}>Continuar →</PrimaryBtn>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 3 — Técnica + cor + quantidade */}
+                  {step === 3 && (
+                    <div>
+                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>Técnica, cor e quantidade</h3>
+                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>Define como fica o teu design e quantas peças precisas.</p>
+
+                      <div style={{ marginBottom: 24 }}>
+                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 12 }}>Técnica de personalização</label>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
+                          {CUSTOM_PRINTS.map(p => (
+                            <button key={p.id} onClick={() => setPrintType(p.id)}
+                              style={{ padding: '14px 16px', border: `1px solid ${printType === p.id ? 'var(--gold)' : 'var(--border)'}`, background: printType === p.id ? 'rgba(176,141,87,.08)' : 'transparent', cursor: 'pointer', textAlign: 'left', transition: 'all .2s ease' }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: printType === p.id ? 'var(--gold)' : 'var(--fg)', marginBottom: 3 }}>{p.label}</div>
+                              <div style={{ fontSize: 11, color: 'var(--fg-mute)' }}>{p.note}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: 24 }}>
+                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 12 }}>Cor base da peça</label>
+                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                          {CUSTOM_COLORS.map(c => (
+                            <button key={c} onClick={() => setColor(c)}
+                              style={{ width: 34, height: 34, borderRadius: '50%', background: c, border: `3px solid ${color === c ? 'var(--gold)' : 'transparent'}`, outline: `1px solid ${c === '#F5F2ED' ? 'var(--border)' : 'transparent'}`, cursor: 'pointer', transition: 'border-color .2s', boxShadow: color === c ? '0 0 0 2px var(--bg)' : 'none' }} />
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: 24 }}>
+                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 12 }}>Quantidade — <span style={{ color: 'var(--fg)' }}>{qty} unidades</span></label>
+                        <input type="range" min={1} max={500} value={qty} onChange={e => setQty(Number(e.target.value))}
+                          style={{ width: '100%', accentColor: 'var(--gold)', cursor: 'pointer' }} />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--fg-mute)', marginTop: 6 }}>
+                          <span>1 un.</span>
+                          <span>500 un.</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                          {[10, 25, 50, 100, 250].map(n => (
+                            <button key={n} onClick={() => setQty(n)}
+                              style={{ padding: '5px 12px', fontSize: 11, border: `1px solid ${qty === n ? 'var(--gold)' : 'var(--border)'}`, background: qty === n ? 'rgba(176,141,87,.1)' : 'transparent', color: qty === n ? 'var(--gold)' : 'var(--fg-mute)', cursor: 'pointer', letterSpacing: '.08em', transition: 'all .2s' }}>
+                              {n}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: 8 }}>
+                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 10 }}>Notas adicionais <span style={{ color: 'var(--fg-mute)', fontWeight: 400 }}>(opcional)</span></label>
+                        <textarea value={notes} onChange={e => setNotes(e.target.value)}
+                          placeholder="Descreve o teu design, logo, texto a incluir, referências..."
+                          rows={3} style={{ width: '100%', background: 'transparent', border: '1px solid var(--border)', padding: '12px 14px', color: 'var(--fg)', fontSize: 14, outline: 'none', resize: 'vertical', fontFamily: 'var(--f-sans)', transition: 'border-color .2s', boxSizing: 'border-box' }}
+                          onFocus={e => (e.currentTarget.style.borderColor = 'var(--gold-3)')}
+                          onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
+                      </div>
+
+                      <div style={{ marginTop: 28, display: 'flex', justifyContent: 'space-between' }}>
+                        <GhostBtn onClick={() => setStep(2)}>← Voltar</GhostBtn>
+                        <PrimaryBtn onClick={() => { if (canNext3) setStep(4) }}>Continuar →</PrimaryBtn>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 4 — Contacto */}
+                  {step === 4 && (
+                    <div>
+                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>Os teus dados de contacto</h3>
+                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>Preenchidos, enviamos-te uma proposta personalizada em 24h.</p>
+                      {[
+                        { id: 'name', label: 'Nome / Empresa', ph: 'O teu nome ou empresa', val: name, set: setName, type: 'text' },
+                        { id: 'email', label: 'Email', ph: 'email@exemplo.pt', val: email, set: setEmail, type: 'email' },
+                        { id: 'phone', label: 'Telefone', ph: '+351 9xx xxx xxx', val: phone, set: setPhone, type: 'tel' },
+                      ].map(f => (
+                        <div key={f.id} style={{ marginBottom: 22 }}>
+                          <label style={{ display: 'block', fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8, fontWeight: 600 }}>{f.label}{f.id !== 'phone' && ' *'}</label>
+                          <input type={f.type} placeholder={f.ph} value={f.val} onChange={e => f.set(e.target.value)}
+                            style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '10px 0', color: 'var(--fg)', fontSize: 15, outline: 'none', transition: 'border-color .2s', boxSizing: 'border-box' }}
+                            onFocus={e => (e.currentTarget.style.borderBottomColor = 'var(--gold)')}
+                            onBlur={e => (e.currentTarget.style.borderBottomColor = 'var(--border)')} />
+                        </div>
+                      ))}
+                      <div style={{ marginTop: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                        <GhostBtn onClick={() => setStep(3)}>← Voltar</GhostBtn>
+                        <PrimaryBtn onClick={handleSubmit}>Pedir orçamento</PrimaryBtn>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Resumo / Estimativa */}
+              <div style={{ position: 'sticky', top: 90, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ border: '1px solid var(--border)', background: 'var(--bg-1)', padding: '28px 24px' }}>
+                  <div style={{ fontSize: 10, letterSpacing: '.24em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, marginBottom: 20 }}>Resumo da configuração</div>
+
+                  {[
+                    { label: 'Artigo', value: garment ? CUSTOM_GARMENTS.find(g => g.id === garment)?.label : '—' },
+                    { label: 'Material', value: fabric ? CUSTOM_FABRICS.find(f => f.id === fabric)?.label : '—' },
+                    { label: 'Técnica', value: printType ? CUSTOM_PRINTS.find(p => p.id === printType)?.label : '—' },
+                    { label: 'Cor base', value: color ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 14, borderRadius: '50%', background: color, display: 'inline-block', border: '1px solid var(--border)' }} />{color}</span> : '—' },
+                    { label: 'Quantidade', value: qty ? `${qty} un.` : '—' },
+                  ].map(row => (
+                    <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)', gap: 12 }}>
+                      <span style={{ fontSize: 12, color: 'var(--fg-mute)' }}>{row.label}</span>
+                      <span style={{ fontSize: 13, color: 'var(--fg)', fontWeight: 500, textAlign: 'right' }}>{row.value}</span>
+                    </div>
+                  ))}
+
+                  {price ? (
+                    <div style={{ marginTop: 20, padding: '16px 0', borderTop: '1px solid var(--gold-3)' }}>
+                      <div style={{ fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--fg-mute)', marginBottom: 10 }}>Estimativa de preço*</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <span style={{ fontSize: 13, color: 'var(--fg-dim)' }}>Preço unitário</span>
+                        <span style={{ fontSize: 14, fontWeight: 600 }}>{price.unit}€</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: 13, color: 'var(--fg-dim)' }}>Total estimado</span>
+                        <span style={{ fontSize: 18, fontFamily: 'var(--f-display)', color: 'var(--gold)', fontWeight: 500 }}>{price.total}€</span>
+                      </div>
+                      {qty >= 10 && (
+                        <div style={{ marginTop: 12, padding: '8px 12px', background: 'rgba(176,141,87,.08)', border: '1px solid var(--gold-3)', fontSize: 11, color: 'var(--gold)' }}>
+                          ✓ Desconto de quantidade aplicado ({qty >= 50 ? '15%' : qty >= 20 ? '10%' : '5%'} off)
+                        </div>
+                      )}
+                      <p style={{ fontSize: 10, color: 'var(--fg-mute)', marginTop: 12, lineHeight: 1.6, margin: '12px 0 0' }}>*Estimativa indicativa. O preço final é confirmado após análise do pedido.</p>
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: 20, padding: '16px', background: 'rgba(176,141,87,.05)', border: '1px dashed var(--border)', textAlign: 'center', color: 'var(--fg-mute)', fontSize: 13 }}>
+                      Complete a configuração para ver a estimativa de preço
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ border: '1px solid var(--border)', background: 'var(--bg-1)', padding: '20px 24px' }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 14, color: 'var(--fg)' }}>Precisa de ajuda?</div>
+                  {[
+                    ['📞', 'karmicnode@gmail.com'],
+                    ['⚡', 'Resposta em menos de 24h'],
+                    ['🔒', 'Orçamento sem compromisso'],
+                  ].map(([icon, text]) => (
+                    <div key={text} style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10, fontSize: 13, color: 'var(--fg-mute)' }}>
+                      <span>{icon}</span><span>{text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* GALERIA */}
+      <section id="galeria" style={{ padding: 'clamp(64px,7vw,100px) 0', background: 'var(--bg-1)', borderBottom: '1px solid var(--border)' }}>
+        <div className="wrap">
+          <SectionHead eyebrow="Galeria" title="Exemplos do nosso <em class='gold-text'>trabalho</em>." lead="Cada peça é única. Estas são algumas das criações que produzimos para os nossos clientes." />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 2, marginTop: 52 }}>
+            {GALLERY_ITEMS.map((item, i) => {
+              const [hov, setHov] = useState(false)
+              return (
+                <div key={item.img} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+                  style={{ position: 'relative', aspectRatio: i === 0 || i === 3 ? '4/5' : '4/5', overflow: 'hidden', background: 'var(--bg-2)', cursor: 'pointer' }}>
+                  <img src={item.img} alt={item.label} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform .7s ease', transform: hov ? 'scale(1.07)' : 'scale(1)' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(11,11,12,.8) 0%, transparent 50%)', opacity: hov ? 1 : 0, transition: 'opacity .4s ease' }} />
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 20px', transform: hov ? 'translateY(0)' : 'translateY(12px)', opacity: hov ? 1 : 0, transition: 'all .4s ease' }}>
+                    <div style={{ fontSize: 9, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 4 }}>{item.cat}</div>
+                    <div style={{ fontFamily: 'var(--f-display)', fontSize: 17, fontWeight: 500 }}>{item.label}</div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* VANTAGENS */}
+      <section style={{ padding: 'clamp(64px,7vw,96px) 0', borderBottom: '1px solid var(--border)' }}>
+        <div className="wrap">
+          <SectionHead eyebrow="Porquê nós" title="O que nos <em class='gold-text'>distingue</em>." />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 16, marginTop: 52 }}>
+            {[
+              { icon: '🎨', title: 'Design incluído', desc: 'A nossa equipa ajuda-te a adaptar ou criar o teu design sem custos adicionais na maioria dos projetos.' },
+              { icon: '⏱️', title: 'Prazos cumpridos', desc: 'Produção em 10 a 15 dias úteis. Serviço urgente disponível com entrega em 5-7 dias.' },
+              { icon: '📦', title: 'Mínimos acessíveis', desc: 'A partir de 1 unidade em bordado e DTG. Para serigrafia, o mínimo são 20 unidades.' },
+              { icon: '✅', title: 'Prova antes de produzir', desc: 'Enviamos sempre uma prova digital para aprovação. Sem surpresas na entrega.' },
+              { icon: '🌱', title: 'Opções sustentáveis', desc: 'Algodão orgânico certificado GOTS disponível em todos os artigos de vestuário.' },
+              { icon: '🤝', title: 'Parcerias empresariais', desc: 'Acordos especiais para empresas com pedidos recorrentes. Fatura simplificada disponível.' },
+            ].map(v => (
+              <div key={v.title} style={{ display: 'flex', gap: 20, padding: 'clamp(20px,2vw,28px)', border: '1px solid var(--border)', background: 'var(--bg-1)', alignItems: 'flex-start' }}>
+                <div style={{ fontSize: 24, flexShrink: 0, marginTop: 2 }}>{v.icon}</div>
+                <div>
+                  <h4 style={{ fontFamily: 'var(--f-display)', fontSize: 18, fontWeight: 500, marginBottom: 7 }}>{v.title}</h4>
+                  <p style={{ color: 'var(--fg-dim)', fontSize: 14, lineHeight: 1.7, margin: 0 }}>{v.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section style={{ padding: 'clamp(64px,7vw,100px) 0', background: 'var(--bg-1)', borderBottom: '1px solid var(--border)' }}>
+        <div className="wrap" style={{ maxWidth: 800, margin: '0 auto' }}>
+          <SectionHead eyebrow="FAQ" title="Perguntas <em class='gold-text'>frequentes</em>." />
+          <div style={{ marginTop: 48, border: '1px solid var(--border)' }}>
+            {CUSTOM_FAQS.map((faq, i) => (
+              <div key={i} style={{ borderBottom: i < CUSTOM_FAQS.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  style={{ width: '100%', padding: '22px 24px', background: openFaq === i ? 'rgba(176,141,87,.05)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, textAlign: 'left', transition: 'background .2s' }}>
+                  <span style={{ fontFamily: 'var(--f-display)', fontSize: 17, fontWeight: 500, color: openFaq === i ? 'var(--gold)' : 'var(--fg)', transition: 'color .2s' }}>{faq.q}</span>
+                  <span style={{ color: 'var(--gold)', fontSize: 18, flexShrink: 0, transition: 'transform .3s ease', transform: openFaq === i ? 'rotate(45deg)' : 'none', display: 'inline-block' }}>+</span>
+                </button>
+                {openFaq === i && (
+                  <div style={{ padding: '0 24px 22px', color: 'var(--fg-dim)', fontSize: 15, lineHeight: 1.75 }}>
+                    {faq.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA FINAL */}
+      <section style={{ padding: 'clamp(64px,7vw,100px) 0', background: `radial-gradient(700px 400px at 50% 0%, rgba(139,30,45,.3), transparent 70%), var(--bg)`, textAlign: 'center' }}>
+        <div className="wrap" style={{ maxWidth: 580 }}>
+          <Eyebrow text="Pronto para começar?" />
+          <h2 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(30px,3.5vw,52px)', fontWeight: 500, margin: '20px 0 16px', lineHeight: 1.1 }}>
+            Transforma a tua <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>ideia em roupa</em>.
+          </h2>
+          <p style={{ color: 'var(--fg-mute)', fontSize: 15, marginBottom: 36, lineHeight: 1.7 }}>
+            Usa o configurador acima ou contacta-nos diretamente. Sem mínimos para começar.
+          </p>
+          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <PrimaryBtn onClick={() => document.getElementById('configurador')?.scrollIntoView({ behavior: 'smooth' })}>
+              Configurar agora
+            </PrimaryBtn>
+            <GhostBtn onClick={() => setPage('contact')}>Falar connosco</GhostBtn>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  )
+}
+
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 function Footer({ setPage }: { setPage: (p: Page) => void }) {
@@ -1869,7 +2344,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
 
           {[
             { title: 'Loja', links: [{ l: 'Tops', p: 'shop' }, { l: 'Calças', p: 'shop' }, { l: 'Vestidos', p: 'shop' }, { l: 'Casacos', p: 'shop' }, { l: 'Acessórios', p: 'shop' }, { l: 'Promoções', p: 'shop' }] as { l: string; p: Page }[] },
-            { title: 'Empresa', links: [{ l: 'Quem Somos', p: 'about' }, { l: 'Lookbook', p: 'about' }, { l: 'Blog', p: 'blog' }, { l: 'Sustentabilidade', p: 'about' }, { l: 'Parcerias', p: 'contact' }, { l: 'Contacto', p: 'contact' }] as { l: string; p: Page }[] },
+            { title: 'Empresa', links: [{ l: 'Quem Somos', p: 'about' }, { l: 'Roupa Personalizada', p: 'custom' }, { l: 'Blog', p: 'blog' }, { l: 'Sustentabilidade', p: 'about' }, { l: 'Parcerias', p: 'contact' }, { l: 'Contacto', p: 'contact' }] as { l: string; p: Page }[] },
             { title: 'Apoio', links: [{ l: 'FAQ', p: 'home' }, { l: 'Política de Envio', p: 'home' }, { l: 'Devoluções', p: 'home' }, { l: 'Garantia', p: 'home' }, { l: 'Privacidade', p: 'home' }, { l: 'Termos', p: 'home' }] as { l: string; p: Page }[] },
           ].map(col => (
             <div key={col.title}>
@@ -2051,6 +2526,7 @@ export default function App() {
       {activePage === 'contact' && <ContactPage />}
       {activePage === 'about' && <AboutPage setPage={setPage} />}
       {activePage === 'blog' && <BlogPage />}
+      {activePage === 'custom' && <CustomPage setPage={setPage} />}
 
       <Footer setPage={setPage} />
 

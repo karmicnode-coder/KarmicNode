@@ -4,6 +4,8 @@ import logoImg from '@/imports/Logo_KarmicNode_sem_fundo.png'
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type Page = 'home' | 'shop' | 'product' | 'contact' | 'about' | 'blog' | 'custom'
+type Lang = 'pt' | 'en'
+const LangContext = React.createContext<Lang>('pt')
 
 interface Product {
   id: number
@@ -481,12 +483,354 @@ const ALL_PRODUCTS: Product[] = [
 
 const CATEGORIES_LIST = ['Todos', 'Tops', 'Calças', 'Vestidos', 'Casacos', 'Calçado', 'Camisas', 'Acessórios', 'Desporto', 'Saias']
 
-const NAV_LINKS: { label: string; page: Page; filter?: string }[] = [
-  { label: 'Início', page: 'home' },
-  { label: 'Loja', page: 'shop' },
-  { label: 'Personalizada', page: 'custom' },
-  { label: 'Blog', page: 'blog' },
-  { label: 'Contacto', page: 'contact' },
+const TRANSLATIONS = {
+  pt: {
+    nav: { home: 'Início', shop: 'Loja', custom: 'Personalizada', blog: 'Blog', contact: 'Contacto', about: 'Quem Somos' },
+    announcement: 'Envio grátis a partir de 150€ · Portugal Continental',
+    announcementSub: 'Até 24 meses sem juros · MBWay',
+    cart: {
+      title: 'Carrinho', empty: 'Carrinho vazio', emptyDesc: 'Adicione produtos para continuar.',
+      item: 'artigo', items: 'artigos',
+      freeShipping: 'Parabéns! Tem envio grátis nesta encomenda.',
+      freeShippingLeft: 'Faltam', freeShippingFor: 'para envio grátis',
+      subtotal: 'Subtotal', shipping: 'Envio', free: 'Grátis 🎉', total: 'Total',
+      checkout: 'Finalizar Compra', processing: 'A redirecionar para pagamento…',
+      securePayment: 'Pagamento seguro', returns: '30 dias devolução', delivery: 'CTT / DPD',
+    },
+    home: {
+      heroTitle1: 'Moda com alma.', heroTitle2: 'Estilo atemporal.',
+      heroDesc: 'Peças cuidadosamente selecionadas para o seu guarda-roupa. Qualidade, estilo e consciência — em cada detalhe.',
+      heroCta1: 'Ver Coleção', heroCta2: 'Novidades',
+      catsTitle: 'Explore por <em class="gold-text">categoria</em>.',
+      newArrivals: 'Novidades', newArrivalsTitle: 'As últimas <em class="gold-text">chegadas</em>.',
+      newArrivalsLead: 'As peças mais recentes, selecionadas com rigor para o seu guarda-roupa.',
+      accessories: 'Acessórios', accessoriesTitle: 'Acessórios <em class="gold-text">essenciais</em>.',
+      reviews: 'Avaliações', reviewsTitle: 'O que dizem os nossos <em class="gold-text">clientes</em>.',
+      reviewsLead: 'Mais de 500 clientes satisfeitos em Portugal. Leia as suas experiências.',
+      newsletter: 'Newsletter', newsletterTitle: 'Fique a par das melhores ofertas.',
+      newsletterDesc: 'Promoções exclusivas, novas coleções e tendências de moda direto no seu email.',
+      newsletterPh: 'O seu endereço de email', newsletterBtn: 'Subscrever',
+      newsletterOk: 'Subscrito com sucesso! Obrigado.', noSpam: 'Sem spam. Pode cancelar a qualquer momento.',
+    },
+    shop: {
+      eyebrow: 'Loja', title: 'Toda a <em class="gold-text">coleção</em>.',
+      lead: 'Descubra todas as nossas peças. Use os filtros para encontrar o que procura.',
+      searchPh: 'Pesquisar produtos…', sort: 'Ordenar',
+      sortLabels: { relevance: 'Relevância', priceAsc: 'Preço ↑', priceDesc: 'Preço ↓', rating: 'Avaliação' },
+      noResults: 'Nenhum produto encontrado', noResultsDesc: 'Tente outra categoria ou pesquisa.',
+    },
+    product: {
+      addToCart: 'Adicionar ao Carrinho', outOfStock: 'Esgotado',
+      desc: 'Descrição', specs: 'Especificações', reviews: 'Avaliações',
+      related: 'Mais em', shipping: 'Envio 24-48h', returns: 'Devolução 30 dias',
+      secure: 'Pagamento seguro', sizeExchange: 'Troca de tamanho',
+      inStock: 'Em stock', lowStock: 'Últimas unidades',
+    },
+    contact: {
+      eyebrow: 'Contacto', title: 'Vamos <em style="color:var(--gold);font-style:italic">conversar</em>.',
+      desc: 'Tem dúvidas sobre um produto, precisa de ajuda com trocas ou quer saber mais sobre a nossa coleção? Estamos aqui.',
+      lEmail: 'Email', lLocation: 'Localização', lHours: 'Horário', lSupport: 'Suporte', lSocial: 'Redes Sociais',
+      formTitle: 'Peça um <em style="color:var(--gold);font-style:italic">orçamento</em>',
+      formDesc: 'Preencha e responderemos com uma proposta clara.',
+      lName: 'Nome', lArea: 'Área de interesse', lMsg: 'Mensagem',
+      namePh: 'O seu nome completo', emailPh: 'email@exemplo.pt', msgPh: 'Descreva o seu projeto ou necessidade...',
+      send: 'Enviar Pedido', sending: 'A enviar…',
+      okTitle: 'Mensagem enviada!', okDesc: 'Responderemos em menos de 24 horas.',
+      areas: ['Roupa & Moda', 'Loja — Compra', 'Trocas & Devoluções', 'Encomendas', 'Parcerias', 'Outro'],
+      errNet: 'Erro de rede. Verifique a ligação e tente novamente.',
+      errSend: 'Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com',
+    },
+    about: {
+      eyebrow: 'Quem Somos', title: 'Uma equipa, uma <em style="color:var(--gold);font-style:italic">visão</em>.',
+      desc: 'A Karmic Node nasceu com o objetivo de oferecer moda com identidade — peças atemporais, cuidadosamente selecionadas, que combinam estilo, qualidade e consciência. Uma marca feita para quem valoriza o que viste.',
+      mission: 'Missão', missionText: 'Democratizar o acesso a moda de qualidade, oferecendo peças atemporais que transmitem confiança e identidade — com atenção ao detalhe e respeito pelo cliente.',
+      vision: 'Visão', visionText: 'Ser uma referência portuguesa de moda consciente, reconhecida pela curadoria rigorosa, qualidade dos materiais e proximidade com quem nos escolhe.',
+      values: 'Valores', valuesText: 'Profissionalismo, Compromisso, Qualidade, Inovação, Proximidade, Rigor e Criatividade — em cada entrega, sem exceções.',
+      juntos: 'Juntos', ctaTitle: 'Confiança construída em cada <em style="color:var(--gold);font-style:italic">detalhe</em>.',
+      ctaDesc: 'Descubra os nossos produtos e serviços — ou fale diretamente connosco.',
+      ctaShop: 'Visitar a Loja', ctaContact: 'Contactar',
+    },
+    blog: {
+      eyebrow: 'Blog', title: 'Moda em <em style="color:var(--gold);font-style:italic">foco</em>.',
+      desc: 'Tendências, guias de estilo e dicas de moda — escritos pela equipa Karmic Node.',
+      searchPh: 'Pesquisar artigos…', featured: 'Destaque', allArticles: 'Todos os artigos',
+      readMore: 'Ler artigo', readTime: 'min de leitura',
+      noResults: 'Nenhum artigo encontrado', noResultsDesc: 'Tente outra pesquisa ou categoria.',
+      authorRole: 'Moda & Estilo', backToBlog: '← Blog', catLabel: 'Categoria:',
+    },
+    custom: {
+      eyebrow: 'Roupa Personalizada',
+      heroTitle: 'A tua marca,', heroTitleEm: 'a tua peça.',
+      heroDesc: 'Criamos roupa personalizada para empresas, eventos, equipas e projetos individuais. Do design à entrega — tratamos de tudo.',
+      ctaConfig: 'Configurar agora', ctaGallery: 'Ver exemplos',
+      howEyebrow: 'Processo', howTitle: 'Como <em class="gold-text">funciona</em>.',
+      howLead: 'Simples, rápido e sem complicações — da ideia à peça final em 4 passos.',
+      steps: [
+        { n: '01', title: 'Configura', desc: 'Escolhe o artigo, tecido, técnica de personalização e cores no nosso configurador.' },
+        { n: '02', title: 'Pede orçamento', desc: 'Submete o pedido com o teu design ou ideia. Respondemos em 24h com proposta.' },
+        { n: '03', title: 'Aprova a prova', desc: 'Enviamos uma prova digital (ou física ≥50 unid.) antes de iniciar a produção.' },
+        { n: '04', title: 'Recebe', desc: 'Produção em 10-15 dias úteis. Entregamos em qualquer ponto de Portugal.' },
+      ],
+      configEyebrow: 'Configurador', configTitle: 'Cria a tua <em class="gold-text">peça única</em>.',
+      configLead: 'Personaliza passo a passo e obtém uma estimativa de preço em tempo real.',
+      stepLabels: ['Artigo', 'Material', 'Técnica', 'Contacto'],
+      s1Title: 'Que artigo queres personalizar?', s1Desc: 'Escolhe o tipo de peça para o teu projeto.',
+      s2Title: 'Qual o material?', s2Desc: 'O tecido define o conforto, durabilidade e toque da peça.',
+      s3Title: 'Técnica, cor e quantidade', s3Desc: 'Define como fica o teu design e quantas peças precisas.',
+      s4Title: 'Os teus dados de contacto', s4Desc: 'Preenchidos, enviamos-te uma proposta personalizada em 24h.',
+      lTechnique: 'Técnica de personalização', lColor: 'Cor base da peça', lQty: 'Quantidade',
+      lNotes: 'Notas adicionais', lNotesSub: '(opcional)',
+      notesPh: 'Descreve o teu design, logo, texto a incluir, referências...',
+      lName: 'Nome / Empresa', lPhone: 'Telefone', namePh: 'O teu nome ou empresa', phonePh: '+351 9xx xxx xxx',
+      back: '← Voltar', next: 'Continuar →', submit: 'Pedir orçamento', submitting: 'A enviar…',
+      okTitle: 'Pedido enviado!', okDesc: 'Entraremos em contacto em menos de 24 horas com uma proposta personalizada para o seu projeto.',
+      newReq: 'Novo pedido',
+      summaryTitle: 'Resumo da configuração',
+      sGarment: 'Artigo', sMaterial: 'Material', sTechnique: 'Técnica', sColor: 'Cor base', sQty: 'Quantidade', sUnits: 'unidades',
+      priceTitle: 'Estimativa de preço*', priceUnit: 'Preço unitário', priceTotal: 'Total estimado',
+      priceDiscount: (pct: string) => `✓ Desconto de quantidade aplicado (${pct} off)`,
+      priceNote: '*Estimativa indicativa. O preço final é confirmado após análise do pedido.',
+      priceEmpty: 'Complete a configuração para ver a estimativa de preço',
+      helpTitle: 'Precisa de ajuda?', helpReply: 'Resposta em menos de 24h', helpNoObl: 'Orçamento sem compromisso',
+      galleryEyebrow: 'Galeria', galleryTitle: 'Exemplos do nosso <em class="gold-text">trabalho</em>.',
+      galleryDesc: 'Cada peça é única. Estas são algumas das criações que produzimos para os nossos clientes.',
+      whyEyebrow: 'Porquê nós', whyTitle: 'O que nos <em class="gold-text">distingue</em>.',
+      faqEyebrow: 'FAQ', faqTitle: 'Perguntas <em class="gold-text">frequentes</em>.',
+      ctaFinalEyebrow: 'Pronto para começar?',
+      ctaFinalTitle: 'Transforma a tua <em style="color:var(--gold);font-style:italic">ideia em roupa</em>.',
+      ctaFinalDesc: 'Usa o configurador acima ou contacta-nos diretamente. Sem mínimos para começar.',
+      ctaFinalContact: 'Falar connosco',
+      garments: [
+        { id: 'tshirt', label: 'T-Shirt', icon: '👕', desc: 'Corte reto, unissexo ou fit' },
+        { id: 'hoodie', label: 'Hoodie', icon: '🧥', desc: 'Com capuz, bolso canguru' },
+        { id: 'polo', label: 'Polo', icon: '👔', desc: 'Elegante, com gola' },
+        { id: 'sweat', label: 'Sweatshirt', icon: '🥋', desc: 'Sem capuz, clássica' },
+        { id: 'cap', label: 'Boné', icon: '🧢', desc: 'Snapback ou strapback' },
+        { id: 'bag', label: 'Tote Bag', icon: '👜', desc: 'Algodão 100%, resistente' },
+      ],
+      fabrics: [
+        { id: 'cotton', label: 'Algodão 100%', note: 'Respirável · Durável' },
+        { id: 'cotton_poly', label: 'Algodão/Poliéster', note: 'Anti-rugas · Económico' },
+        { id: 'organic', label: 'Algodão Orgânico', note: 'Sustentável · Certificado' },
+        { id: 'premium', label: 'Premium Pima', note: 'Suave · Luxo' },
+      ],
+      prints: [
+        { id: 'embroidery', label: 'Bordado', note: 'Elegante · Alta durabilidade' },
+        { id: 'dtg', label: 'Impressão DTG', note: 'Cores vivas · Foto-realismo' },
+        { id: 'screen', label: 'Serigrafia', note: 'Ideal ≥ 20 unidades' },
+        { id: 'heat', label: 'Vinil Térmico', note: 'Acabamento premium' },
+        { id: 'patch', label: 'Patch / Etiqueta', note: 'Look exclusivo' },
+      ],
+      faqs: [
+        { q: 'Qual o mínimo de unidades?', a: 'Para a maioria das técnicas aceitamos a partir de 1 unidade. Para serigrafia, o mínimo são 20 unidades para manter o preço competitivo.' },
+        { q: 'Que formatos de ficheiro aceitam?', a: 'Aceitamos ficheiros vetoriais (AI, EPS, SVG, PDF) e raster de alta resolução (PNG/JPG a 300dpi no mínimo). Para bordado, utilizamos os seus ficheiros e fazemos a digitalização incluída no serviço.' },
+        { q: 'Qual é o prazo de produção?', a: 'O prazo standard é de 10 a 15 dias úteis após aprovação da prova. Temos serviço urgente (5-7 dias úteis) com acréscimo de 30%.' },
+        { q: 'É possível ver uma prova antes da produção?', a: 'Sim. Enviamos sempre uma prova digital para aprovação antes de iniciarmos a produção. Para encomendas ≥ 50 unidades, podemos enviar uma amostra física.' },
+        { q: 'Fazem envio para todo o Portugal?', a: 'Sim, enviamos para Portugal Continental e Ilhas. Para encomendas empresariais, disponibilizamos envio para a Europa.' },
+      ],
+      advantages: [
+        { icon: '🎨', title: 'Design incluído', desc: 'A nossa equipa ajuda-te a adaptar ou criar o teu design sem custos adicionais na maioria dos projetos.' },
+        { icon: '⏱️', title: 'Prazos cumpridos', desc: 'Produção em 10 a 15 dias úteis. Serviço urgente disponível com entrega em 5-7 dias.' },
+        { icon: '📦', title: 'Mínimos acessíveis', desc: 'A partir de 1 unidade em bordado e DTG. Para serigrafia, o mínimo são 20 unidades.' },
+        { icon: '✅', title: 'Prova antes de produzir', desc: 'Enviamos sempre uma prova digital para aprovação. Sem surpresas na entrega.' },
+        { icon: '🌱', title: 'Opções sustentáveis', desc: 'Algodão orgânico certificado GOTS disponível em todos os artigos de vestuário.' },
+        { icon: '🤝', title: 'Parcerias empresariais', desc: 'Acordos especiais para empresas com pedidos recorrentes. Fatura simplificada disponível.' },
+      ],
+      errNet: 'Erro de rede. Verifique a ligação e tente novamente.',
+      errSend: 'Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com',
+    },
+    footer: {
+      desc: 'Moda com alma. Peças atemporais, selecionadas com rigor. Cartaxo, Portugal.',
+      copy: '© 2026 Karmic Node · Todos os direitos reservados · karmicnode@gmail.com',
+      colShop: 'Loja', colCompany: 'Empresa', colSupport: 'Apoio',
+      shopLinks: ['Tops', 'Calças', 'Vestidos', 'Casacos', 'Acessórios', 'Promoções'],
+      companyLinks: ['Quem Somos', 'Roupa Personalizada', 'Blog', 'Sustentabilidade', 'Parcerias', 'Contacto'],
+      supportLinks: ['FAQ', 'Política de Envio', 'Devoluções', 'Garantia', 'Privacidade', 'Termos'],
+    },
+    misc: {
+      addedToCart: 'adicionado ao carrinho',
+      paymentOk: '✅ Pagamento concluído! Obrigado pela sua compra.',
+      paymentCancelled: 'Pagamento cancelado. O carrinho foi mantido.',
+    },
+  },
+  en: {
+    nav: { home: 'Home', shop: 'Shop', custom: 'Custom', blog: 'Blog', contact: 'Contact', about: 'About Us' },
+    announcement: 'Free shipping from €150 · Continental Portugal',
+    announcementSub: 'Up to 24 months interest-free · MBWay',
+    cart: {
+      title: 'Cart', empty: 'Your cart is empty', emptyDesc: 'Add products to continue.',
+      item: 'item', items: 'items',
+      freeShipping: 'Congratulations! You have free shipping on this order.',
+      freeShippingLeft: 'Add', freeShippingFor: 'more for free shipping',
+      subtotal: 'Subtotal', shipping: 'Shipping', free: 'Free 🎉', total: 'Total',
+      checkout: 'Checkout', processing: 'Redirecting to payment…',
+      securePayment: 'Secure payment', returns: '30-day returns', delivery: 'CTT / DPD',
+    },
+    home: {
+      heroTitle1: 'Fashion with soul.', heroTitle2: 'Timeless style.',
+      heroDesc: 'Carefully selected pieces for your wardrobe. Quality, style and consciousness — in every detail.',
+      heroCta1: 'View Collection', heroCta2: "What's New",
+      catsTitle: 'Explore by <em class="gold-text">category</em>.',
+      newArrivals: 'New Arrivals', newArrivalsTitle: 'The latest <em class="gold-text">arrivals</em>.',
+      newArrivalsLead: 'The newest pieces, carefully selected for your wardrobe.',
+      accessories: 'Accessories', accessoriesTitle: '<em class="gold-text">Essential</em> accessories.',
+      reviews: 'Reviews', reviewsTitle: 'What our <em class="gold-text">clients</em> say.',
+      reviewsLead: 'Over 500 happy customers in Portugal. Read their experiences.',
+      newsletter: 'Newsletter', newsletterTitle: 'Stay up to date with the best deals.',
+      newsletterDesc: 'Exclusive promotions, new collections and fashion trends straight to your inbox.',
+      newsletterPh: 'Your email address', newsletterBtn: 'Subscribe',
+      newsletterOk: 'Successfully subscribed! Thank you.', noSpam: 'No spam. Unsubscribe at any time.',
+    },
+    shop: {
+      eyebrow: 'Shop', title: 'The full <em class="gold-text">collection</em>.',
+      lead: 'Discover all our pieces. Use the filters to find what you are looking for.',
+      searchPh: 'Search products…', sort: 'Sort',
+      sortLabels: { relevance: 'Relevance', priceAsc: 'Price ↑', priceDesc: 'Price ↓', rating: 'Rating' },
+      noResults: 'No products found', noResultsDesc: 'Try a different category or search.',
+    },
+    product: {
+      addToCart: 'Add to Cart', outOfStock: 'Out of Stock',
+      desc: 'Description', specs: 'Specifications', reviews: 'Reviews',
+      related: 'More in', shipping: 'Shipping 24-48h', returns: '30-day returns',
+      secure: 'Secure payment', sizeExchange: 'Size exchange',
+      inStock: 'In stock', lowStock: 'Low stock',
+    },
+    contact: {
+      eyebrow: 'Contact', title: "Let's <em style=\"color:var(--gold);font-style:italic\">talk</em>.",
+      desc: 'Have questions about a product, need help with returns, or want to learn more about our collection? We are here.',
+      lEmail: 'Email', lLocation: 'Location', lHours: 'Hours', lSupport: 'Support', lSocial: 'Social Media',
+      formTitle: 'Request a <em style="color:var(--gold);font-style:italic">quote</em>',
+      formDesc: 'Fill in and we will respond with a clear proposal.',
+      lName: 'Name', lArea: 'Area of interest', lMsg: 'Message',
+      namePh: 'Your full name', emailPh: 'email@example.com', msgPh: 'Describe your project or need...',
+      send: 'Send Request', sending: 'Sending…',
+      okTitle: 'Message sent!', okDesc: 'We will respond within 24 hours.',
+      areas: ['Clothing & Fashion', 'Shop — Purchase', 'Returns & Exchanges', 'Orders', 'Partnerships', 'Other'],
+      errNet: 'Network error. Please check your connection and try again.',
+      errSend: 'Error sending. Please try again or contact karmicnode@gmail.com',
+    },
+    about: {
+      eyebrow: 'About Us', title: 'One team, one <em style="color:var(--gold);font-style:italic">vision</em>.',
+      desc: 'Karmic Node was born with the goal of offering fashion with identity — timeless pieces, carefully selected, combining style, quality and consciousness. A brand made for those who value what they wear.',
+      mission: 'Mission', missionText: 'To democratise access to quality fashion, offering timeless pieces that convey confidence and identity — with attention to detail and respect for the customer.',
+      vision: 'Vision', visionText: 'To be a Portuguese reference in conscious fashion, recognised for rigorous curation, quality materials and proximity to those who choose us.',
+      values: 'Values', valuesText: 'Professionalism, Commitment, Quality, Innovation, Proximity, Rigour and Creativity — in every delivery, without exception.',
+      juntos: 'Together', ctaTitle: 'Trust built in every <em style="color:var(--gold);font-style:italic">detail</em>.',
+      ctaDesc: 'Discover our products and services — or speak directly with us.',
+      ctaShop: 'Visit the Shop', ctaContact: 'Contact Us',
+    },
+    blog: {
+      eyebrow: 'Blog', title: 'Fashion in <em style="color:var(--gold);font-style:italic">focus</em>.',
+      desc: 'Trends, style guides and fashion tips — written by the Karmic Node team.',
+      searchPh: 'Search articles…', featured: 'Featured', allArticles: 'All articles',
+      readMore: 'Read article', readTime: 'min read',
+      noResults: 'No articles found', noResultsDesc: 'Try a different search or category.',
+      authorRole: 'Fashion & Style', backToBlog: '← Blog', catLabel: 'Category:',
+    },
+    custom: {
+      eyebrow: 'Custom Clothing',
+      heroTitle: 'Your brand,', heroTitleEm: 'your piece.',
+      heroDesc: 'We create custom clothing for businesses, events, teams and individual projects. From design to delivery — we handle everything.',
+      ctaConfig: 'Configure now', ctaGallery: 'View examples',
+      howEyebrow: 'Process', howTitle: 'How it <em class="gold-text">works</em>.',
+      howLead: 'Simple, fast and hassle-free — from idea to final piece in 4 steps.',
+      steps: [
+        { n: '01', title: 'Configure', desc: 'Choose the item, fabric, customisation technique and colours in our configurator.' },
+        { n: '02', title: 'Request a quote', desc: 'Submit your request with your design or idea. We respond within 24h with a proposal.' },
+        { n: '03', title: 'Approve the proof', desc: 'We send a digital proof (or physical for ≥50 units) before starting production.' },
+        { n: '04', title: 'Receive', desc: 'Production in 10-15 business days. We deliver anywhere in Portugal.' },
+      ],
+      configEyebrow: 'Configurator', configTitle: 'Create your <em class="gold-text">unique piece</em>.',
+      configLead: 'Customise step by step and get a real-time price estimate.',
+      stepLabels: ['Item', 'Material', 'Technique', 'Contact'],
+      s1Title: 'What item do you want to customise?', s1Desc: 'Choose the type of piece for your project.',
+      s2Title: 'What material?', s2Desc: 'The fabric defines the comfort, durability and feel of the piece.',
+      s3Title: 'Technique, colour and quantity', s3Desc: 'Define how your design looks and how many pieces you need.',
+      s4Title: 'Your contact details', s4Desc: 'Once filled in, we will send you a personalised proposal within 24h.',
+      lTechnique: 'Customisation technique', lColor: 'Base colour of piece', lQty: 'Quantity',
+      lNotes: 'Additional notes', lNotesSub: '(optional)',
+      notesPh: 'Describe your design, logo, text to include, references...',
+      lName: 'Name / Company', lPhone: 'Phone', namePh: 'Your name or company', phonePh: '+351 9xx xxx xxx',
+      back: '← Back', next: 'Continue →', submit: 'Request quote', submitting: 'Sending…',
+      okTitle: 'Request sent!', okDesc: 'We will be in touch within 24 hours with a personalised proposal for your project.',
+      newReq: 'New request',
+      summaryTitle: 'Configuration summary',
+      sGarment: 'Item', sMaterial: 'Material', sTechnique: 'Technique', sColor: 'Base colour', sQty: 'Quantity', sUnits: 'units',
+      priceTitle: 'Price estimate*', priceUnit: 'Unit price', priceTotal: 'Estimated total',
+      priceDiscount: (pct: string) => `✓ Quantity discount applied (${pct} off)`,
+      priceNote: '*Indicative estimate. Final price confirmed after reviewing the request.',
+      priceEmpty: 'Complete the configuration to see the price estimate',
+      helpTitle: 'Need help?', helpReply: 'Response within 24h', helpNoObl: 'No-obligation quote',
+      galleryEyebrow: 'Gallery', galleryTitle: 'Examples of our <em class="gold-text">work</em>.',
+      galleryDesc: 'Each piece is unique. Here are some of the creations we have produced for our clients.',
+      whyEyebrow: 'Why us', whyTitle: 'What sets us <em class="gold-text">apart</em>.',
+      faqEyebrow: 'FAQ', faqTitle: 'Frequently asked <em class="gold-text">questions</em>.',
+      ctaFinalEyebrow: 'Ready to start?',
+      ctaFinalTitle: 'Turn your <em style="color:var(--gold);font-style:italic">idea into clothing</em>.',
+      ctaFinalDesc: 'Use the configurator above or contact us directly. No minimums to get started.',
+      ctaFinalContact: 'Talk to us',
+      garments: [
+        { id: 'tshirt', label: 'T-Shirt', icon: '👕', desc: 'Straight cut, unisex or fitted' },
+        { id: 'hoodie', label: 'Hoodie', icon: '🧥', desc: 'With hood, kangaroo pocket' },
+        { id: 'polo', label: 'Polo', icon: '👔', desc: 'Elegant, with collar' },
+        { id: 'sweat', label: 'Sweatshirt', icon: '🥋', desc: 'No hood, classic' },
+        { id: 'cap', label: 'Cap', icon: '🧢', desc: 'Snapback or strapback' },
+        { id: 'bag', label: 'Tote Bag', icon: '👜', desc: '100% cotton, durable' },
+      ],
+      fabrics: [
+        { id: 'cotton', label: '100% Cotton', note: 'Breathable · Durable' },
+        { id: 'cotton_poly', label: 'Cotton/Polyester', note: 'Wrinkle-free · Economical' },
+        { id: 'organic', label: 'Organic Cotton', note: 'Sustainable · Certified' },
+        { id: 'premium', label: 'Premium Pima', note: 'Soft · Luxury' },
+      ],
+      prints: [
+        { id: 'embroidery', label: 'Embroidery', note: 'Elegant · High durability' },
+        { id: 'dtg', label: 'DTG Printing', note: 'Vivid colours · Photo-realism' },
+        { id: 'screen', label: 'Screen Printing', note: 'Best for ≥ 20 units' },
+        { id: 'heat', label: 'Heat Transfer Vinyl', note: 'Premium finish' },
+        { id: 'patch', label: 'Patch / Label', note: 'Exclusive look' },
+      ],
+      faqs: [
+        { q: 'What is the minimum order quantity?', a: 'For most techniques we accept from 1 unit. For screen printing, the minimum is 20 units to keep prices competitive.' },
+        { q: 'What file formats do you accept?', a: 'We accept vector files (AI, EPS, SVG, PDF) and high-resolution raster files (PNG/JPG at 300dpi minimum). For embroidery, we use your files and digitisation is included in the service.' },
+        { q: 'What is the production lead time?', a: 'Standard lead time is 10 to 15 business days after proof approval. We offer an urgent service (5-7 business days) with a 30% surcharge.' },
+        { q: 'Can I see a proof before production?', a: 'Yes. We always send a digital proof for approval before starting production. For orders ≥ 50 units, we can send a physical sample.' },
+        { q: 'Do you ship across all of Portugal?', a: 'Yes, we ship to Continental Portugal and the Islands. For business orders, we offer shipping across Europe.' },
+      ],
+      advantages: [
+        { icon: '🎨', title: 'Design included', desc: 'Our team helps you adapt or create your design at no extra cost for most projects.' },
+        { icon: '⏱️', title: 'Deadlines met', desc: 'Production in 10 to 15 business days. Urgent service available with delivery in 5-7 days.' },
+        { icon: '📦', title: 'Accessible minimums', desc: 'From 1 unit for embroidery and DTG. For screen printing, the minimum is 20 units.' },
+        { icon: '✅', title: 'Proof before production', desc: 'We always send a digital proof for approval. No surprises on delivery.' },
+        { icon: '🌱', title: 'Sustainable options', desc: 'GOTS certified organic cotton available on all clothing items.' },
+        { icon: '🤝', title: 'Business partnerships', desc: 'Special agreements for businesses with recurring orders. Simplified invoicing available.' },
+      ],
+      errNet: 'Network error. Please check your connection and try again.',
+      errSend: 'Error sending. Please try again or contact karmicnode@gmail.com',
+    },
+    footer: {
+      desc: 'Fashion with soul. Timeless pieces, carefully selected. Cartaxo, Portugal.',
+      copy: '© 2026 Karmic Node · All rights reserved · karmicnode@gmail.com',
+      colShop: 'Shop', colCompany: 'Company', colSupport: 'Support',
+      shopLinks: ['Tops', 'Trousers', 'Dresses', 'Coats', 'Accessories', 'Sale'],
+      companyLinks: ['About Us', 'Custom Clothing', 'Blog', 'Sustainability', 'Partnerships', 'Contact'],
+      supportLinks: ['FAQ', 'Shipping Policy', 'Returns', 'Warranty', 'Privacy', 'Terms'],
+    },
+    misc: {
+      addedToCart: 'added to cart',
+      paymentOk: '✅ Payment completed! Thank you for your purchase.',
+      paymentCancelled: 'Payment cancelled. Your cart has been kept.',
+    },
+  },
+} as const
+const useT = () => TRANSLATIONS[React.useContext(LangContext)]
+
+const NAV_PAGES: { key: keyof typeof TRANSLATIONS['pt']['nav']; page: Page; filter?: string }[] = [
+  { key: 'home', page: 'home' },
+  { key: 'shop', page: 'shop' },
+  { key: 'custom', page: 'custom' },
+  { key: 'blog', page: 'blog' },
+  { key: 'contact', page: 'contact' },
 ]
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -710,6 +1054,7 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
   open: boolean; onClose: () => void; items: CartItem[]
   updateQty: (id: number, qty: number) => void; remove: (id: number) => void
 }) {
+  const T = useT()
   const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0)
   const shipping = subtotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST
   const total = subtotal + shipping
@@ -747,9 +1092,9 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
         {/* Header */}
         <div style={{ padding: '22px 26px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <Eyebrow text="Carrinho" />
+            <Eyebrow text={T.cart.title} />
             <div style={{ fontFamily: 'var(--f-display)', fontSize: 24, fontWeight: 500, marginTop: 8 }}>
-              {items.length} {items.length === 1 ? 'artigo' : 'artigos'}
+              {items.length} {items.length === 1 ? T.cart.item : T.cart.items}
             </div>
           </div>
           <button onClick={onClose} style={{ width: 38, height: 38, border: '1px solid var(--border)', background: 'transparent', color: 'var(--fg-mute)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -763,12 +1108,12 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
             {subtotal >= SHIPPING_THRESHOLD ? (
               <div style={{ fontSize: 12, color: 'var(--gold)', display: 'flex', alignItems: 'center', gap: 7 }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                Parabéns! Tem envio grátis nesta encomenda.
+                {T.cart.freeShipping}
               </div>
             ) : (
               <div>
                 <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginBottom: 7 }}>
-                  Faltam <b style={{ color: 'var(--fg)' }}>{fmt(freeShippingRemaining)}</b> para envio grátis
+                  {T.cart.freeShippingLeft} <b style={{ color: 'var(--fg)' }}>{fmt(freeShippingRemaining)}</b> {T.cart.freeShippingFor}
                 </div>
                 <div style={{ height: 3, background: 'var(--border)', borderRadius: 2 }}>
                   <div style={{ height: '100%', background: 'var(--gold)', borderRadius: 2, width: `${Math.min((subtotal / SHIPPING_THRESHOLD) * 100, 100)}%`, transition: 'width .4s ease' }} />
@@ -785,8 +1130,8 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
               <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" style={{ margin: '0 auto 16px', display: 'block', opacity: .4 }}>
                 <path d="M6 2L4 7v13h16V7L18 2Z" /><path d="M8 10c0 2 1.8 4 4 4s4-2 4-4" />
               </svg>
-              <div style={{ fontFamily: 'var(--f-display)', fontSize: 20 }}>Carrinho vazio</div>
-              <div style={{ fontSize: 13, marginTop: 8 }}>Adicione produtos para continuar.</div>
+              <div style={{ fontFamily: 'var(--f-display)', fontSize: 20 }}>{T.cart.empty}</div>
+              <div style={{ fontSize: 13, marginTop: 8 }}>{T.cart.emptyDesc}</div>
             </div>
           ) : items.map(item => (
             <div key={item.id} style={{ display: 'flex', gap: 12, paddingBottom: 14, borderBottom: '1px solid var(--border)' }}>
@@ -830,18 +1175,18 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
             {/* Price breakdown */}
             <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 13, color: 'var(--fg-mute)' }}>Subtotal</span>
+                <span style={{ fontSize: 13, color: 'var(--fg-mute)' }}>{T.cart.subtotal}</span>
                 <span style={{ fontSize: 15 }}>{fmt(subtotal)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 13, color: 'var(--fg-mute)' }}>Envio</span>
+                <span style={{ fontSize: 13, color: 'var(--fg-mute)' }}>{T.cart.shipping}</span>
                 <span style={{ fontSize: 15, color: shipping === 0 ? 'var(--gold)' : 'var(--fg)' }}>
-                  {shipping === 0 ? 'Grátis 🎉' : fmt(shipping)}
+                  {shipping === 0 ? T.cart.free : fmt(shipping)}
                 </span>
               </div>
               <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-mute)' }}>Total</span>
+                <span style={{ fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-mute)' }}>{T.cart.total}</span>
                 <span style={{ fontFamily: 'var(--f-display)', fontSize: 26, fontWeight: 600 }}>{fmt(total)}</span>
               </div>
             </div>
@@ -854,12 +1199,12 @@ function CartDrawer({ open, onClose, items, updateQty, remove }: {
             )}
 
             <PrimaryBtn full onClick={handleCheckout} disabled={loading}>
-              {loading ? 'A redirecionar para pagamento…' : 'Finalizar Compra'}
+              {loading ? T.cart.processing : T.cart.checkout}
             </PrimaryBtn>
 
             {/* Trust row */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 14, flexWrap: 'wrap' }}>
-              {[['🔒', 'Pagamento seguro'], ['↩', '30 dias devolução'], ['🚚', 'CTT / DPD']].map(([icon, label]) => (
+              {[['🔒', T.cart.securePayment], ['↩', T.cart.returns], ['🚚', T.cart.delivery]].map(([icon, label]) => (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--fg-mute)' }}>
                   <span>{icon}</span><span>{label}</span>
                 </div>
@@ -893,11 +1238,13 @@ function HeaderNavLink({ label, active, onClick }: { label: string; active: bool
   )
 }
 
-function Header({ activePage, shopFilter, navigate, cartCount, openCart }: {
+function Header({ activePage, shopFilter, navigate, cartCount, openCart, lang, setLang }: {
   activePage: Page; shopFilter: string; navigate: (page: Page, filter?: string) => void; cartCount: number; openCart: () => void
+  lang: Lang; setLang: (l: Lang) => void
 }) {
   const [scrolled, setScrolled] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
+  const T = useT()
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40)
@@ -910,9 +1257,9 @@ function Header({ activePage, shopFilter, navigate, cartCount, openCart }: {
       {/* Announcement */}
       <div style={{ background: 'var(--bordo)', padding: '9px 20px', textAlign: 'center', fontFamily: 'var(--f-sans)', fontSize: 12, letterSpacing: '.16em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
         <span style={{ color: 'rgba(245,242,237,.7)' }}>🚚</span>
-        <span style={{ color: '#F5F2ED' }}>Envio grátis a partir de <b>150€</b> · Portugal Continental</span>
+        <span style={{ color: '#F5F2ED' }}>{T.announcement}</span>
         <span style={{ color: 'var(--gold-2)' }}>·</span>
-        <span style={{ color: 'var(--gold-2)' }}>Até 24 meses sem juros · MBWay</span>
+        <span style={{ color: 'var(--gold-2)' }}>{T.announcementSub}</span>
       </div>
 
       {/* Header bar */}
@@ -928,12 +1275,12 @@ function Header({ activePage, shopFilter, navigate, cartCount, openCart }: {
 
         {/* Desktop nav */}
         <nav className="kn-header-nav">
-          {NAV_LINKS.map(({ label, page, filter }) => {
+          {NAV_PAGES.map(({ key, page, filter }) => {
             const active = page === 'shop'
               ? activePage === 'shop' && (filter ? shopFilter === filter : shopFilter === 'Todos')
               : activePage === page
             return (
-              <HeaderNavLink key={label} label={label} active={active}
+              <HeaderNavLink key={key} label={T.nav[key]} active={active}
                 onClick={() => navigate(page, filter)} />
             )
           })}
@@ -941,6 +1288,16 @@ function Header({ activePage, shopFilter, navigate, cartCount, openCart }: {
 
         {/* Right actions */}
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Language switcher */}
+          <div style={{ display: 'flex', border: '1px solid var(--border)', overflow: 'hidden', flexShrink: 0 }}>
+            {(['pt', 'en'] as const).map(l => (
+              <button key={l} onClick={() => setLang(l)}
+                style={{ padding: '6px 10px', background: lang === l ? 'var(--gold)' : 'transparent', border: 'none', color: lang === l ? '#0B0B0C' : 'var(--fg-mute)', fontFamily: 'var(--f-sans)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: lang === l ? 700 : 400, cursor: 'pointer', transition: 'all .2s ease' }}>
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
           <IconBtn onClick={() => navigate('contact')}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
           </IconBtn>
@@ -950,7 +1307,7 @@ function Header({ activePage, shopFilter, navigate, cartCount, openCart }: {
             onMouseLeave={e => (e.currentTarget.style.background = 'var(--bordo)')}
             style={{ padding: '9px 16px', background: 'var(--bordo)', border: 'none', color: '#F5F2ED', fontFamily: 'var(--f-sans)', fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 7, transition: 'background .2s ease', flexShrink: 0 }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L4 7v13h16V7L18 2Z" /><path d="M8 10c0 2 1.8 4 4 4s4-2 4-4" /></svg>
-            <span>Carrinho</span>
+            <span>{T.cart.title}</span>
             {cartCount > 0 && (
               <span style={{ background: 'var(--gold)', color: '#0B0B0C', width: 17, height: 17, borderRadius: '50%', fontSize: 9, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{cartCount}</span>
             )}
@@ -968,16 +1325,16 @@ function Header({ activePage, shopFilter, navigate, cartCount, openCart }: {
 
       {/* Mobile nav */}
       <nav className={`kn-nav-mobile ${navOpen ? 'open' : ''}`}>
-        {NAV_LINKS.map(({ label, page, filter }) => (
-          <a key={label} href="#" onClick={e => { e.preventDefault(); navigate(page, filter); setNavOpen(false) }}
+        {NAV_PAGES.map(({ key, page, filter }) => (
+          <a key={key} href="#" onClick={e => { e.preventDefault(); navigate(page, filter); setNavOpen(false) }}
             style={{ fontFamily: 'var(--f-display)', fontSize: 28, fontWeight: 500, color: 'var(--fg)', letterSpacing: '.04em' }}>
-            {label}
+            {T.nav[key]}
           </a>
         ))}
         <div style={{ marginTop: 16, paddingTop: 24, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <a href="#" onClick={e => { e.preventDefault(); navigate('about'); setNavOpen(false) }} style={{ fontSize: 14, color: 'var(--fg-mute)', letterSpacing: '.14em', textTransform: 'uppercase' }}>Quem Somos</a>
-          <a href="#" onClick={e => { e.preventDefault(); navigate('contact'); setNavOpen(false) }} style={{ fontSize: 14, color: 'var(--fg-mute)', letterSpacing: '.14em', textTransform: 'uppercase' }}>Contacto</a>
-          <a href="#" onClick={e => { e.preventDefault(); navigate('custom'); setNavOpen(false) }} style={{ fontSize: 14, color: 'var(--gold)', letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600 }}>✦ Personalizada</a>
+          <a href="#" onClick={e => { e.preventDefault(); navigate('about'); setNavOpen(false) }} style={{ fontSize: 14, color: 'var(--fg-mute)', letterSpacing: '.14em', textTransform: 'uppercase' }}>{T.nav.about}</a>
+          <a href="#" onClick={e => { e.preventDefault(); navigate('contact'); setNavOpen(false) }} style={{ fontSize: 14, color: 'var(--fg-mute)', letterSpacing: '.14em', textTransform: 'uppercase' }}>{T.nav.contact}</a>
+          <a href="#" onClick={e => { e.preventDefault(); navigate('custom'); setNavOpen(false) }} style={{ fontSize: 14, color: 'var(--gold)', letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 600 }}>✦ {T.nav.custom}</a>
         </div>
       </nav>
     </>
@@ -1567,7 +1924,8 @@ async function submitToFormspree(data: Record<string, string>) {
 }
 
 function ContactPage() {
-  const [form, setForm] = useState({ nome: '', email: '', area: 'Roupa & Moda', msg: '' })
+  const T = useT()
+  const [form, setForm] = useState<{ nome: string; email: string; area: string; msg: string }>({ nome: '', email: '', area: T.contact.areas[0], msg: '' })
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -1577,12 +1935,11 @@ function ContactPage() {
     <div style={{ minHeight: '80vh' }}>
       <div style={{ background: 'radial-gradient(700px 400px at 85% 20%, rgba(139,30,45,.18), transparent 60%), var(--bg-1)', borderBottom: '1px solid var(--border)', padding: '80px var(--pad-x) 60px' }}>
         <div style={{ maxWidth: 'var(--maxw)', margin: '0 auto' }}>
-          <Eyebrow text="Contacto" />
-          <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(44px,6vw,88px)', fontWeight: 500, margin: '20px 0 24px', lineHeight: 1.05 }}>
-            Vamos <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>conversar</em>.
-          </h1>
+          <Eyebrow text={T.contact.eyebrow} />
+          <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(44px,6vw,88px)', fontWeight: 500, margin: '20px 0 24px', lineHeight: 1.05 }}
+            dangerouslySetInnerHTML={{ __html: T.contact.title }} />
           <p style={{ color: 'var(--fg-dim)', fontSize: 17, maxWidth: '56ch', lineHeight: 1.65 }}>
-            Tem dúvidas sobre um produto, precisa de ajuda com trocas ou quer saber mais sobre a nossa coleção? Estamos aqui.
+            {T.contact.desc}
           </p>
         </div>
       </div>
@@ -1592,10 +1949,10 @@ function ContactPage() {
           {/* Info */}
           <div>
             {[
-              { label: 'Email', value: 'karmicnode@gmail.com', href: 'mailto:karmicnode@gmail.com' },
-              { label: 'Localização', value: 'Cartaxo · Portugal', href: null },
-              { label: 'Horário', value: 'Seg–Sex · 09h00–19h00', href: null },
-              { label: 'Suporte', value: 'Presencial + Remoto', href: null },
+              { label: T.contact.lEmail, value: 'karmicnode@gmail.com', href: 'mailto:karmicnode@gmail.com' },
+              { label: T.contact.lLocation, value: 'Cartaxo · Portugal', href: null },
+              { label: T.contact.lHours, value: 'Seg–Sex · 09h00–19h00', href: null },
+              { label: T.contact.lSupport, value: 'Presencial + Remoto', href: null },
             ].map(row => (
               <div key={row.label} style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: 20, padding: '20px 0', borderBottom: '1px solid var(--border)', alignItems: 'center' }}>
                 <span style={{ fontSize: 10, letterSpacing: '.24em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500 }}>{row.label}</span>
@@ -1610,7 +1967,7 @@ function ContactPage() {
             ))}
 
             <div style={{ marginTop: 32 }}>
-              <div style={{ fontSize: 11, letterSpacing: '.24em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 16, fontWeight: 500 }}>Redes Sociais</div>
+              <div style={{ fontSize: 11, letterSpacing: '.24em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 16, fontWeight: 500 }}>{T.contact.lSocial}</div>
               <div style={{ display: 'flex', gap: 10 }}>
                 {['instagram', 'facebook', 'linkedin'].map(s => (
                   <a key={s} href="#" style={{ width: 40, height: 40, border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-mute)', transition: 'all .2s ease' }}
@@ -1632,17 +1989,17 @@ function ContactPage() {
             {sent ? (
               <div style={{ textAlign: 'center', padding: '40px 0' }}>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.5" style={{ margin: '0 auto 20px' }}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-                <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 28, marginBottom: 12 }}>Mensagem enviada!</h3>
-                <p style={{ color: 'var(--fg-mute)', fontSize: 15 }}>Responderemos em menos de 24 horas.</p>
+                <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 28, marginBottom: 12 }}>{T.contact.okTitle}</h3>
+                <p style={{ color: 'var(--fg-mute)', fontSize: 15 }}>{T.contact.okDesc}</p>
               </div>
             ) : (
               <>
-                <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 26, margin: '0 0 6px' }}>Peça um <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>orçamento</em></h3>
-                <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>Preencha e responderemos com uma proposta clara.</p>
+                <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 26, margin: '0 0 6px' }} dangerouslySetInnerHTML={{ __html: T.contact.formTitle }} />
+                <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>{T.contact.formDesc}</p>
 
                 {[
-                  { id: 'nome', label: 'Nome', type: 'text', ph: 'O seu nome completo' },
-                  { id: 'email', label: 'Email', type: 'email', ph: 'email@exemplo.pt' },
+                  { id: 'nome', label: T.contact.lName, type: 'text', ph: T.contact.namePh },
+                  { id: 'email', label: T.contact.lEmail, type: 'email', ph: T.contact.emailPh },
                 ].map(f => (
                   <div key={f.id} style={{ marginBottom: 20 }}>
                     <label style={{ display: 'block', fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8, fontWeight: 500 }}>{f.label}</label>
@@ -1654,16 +2011,16 @@ function ContactPage() {
                 ))}
 
                 <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: 'block', fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8, fontWeight: 500 }}>Área de interesse</label>
+                  <label style={{ display: 'block', fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8, fontWeight: 500 }}>{T.contact.lArea}</label>
                   <select value={form.area} onChange={e => setForm(prev => ({ ...prev, area: e.target.value }))}
                     style={{ width: '100%', background: 'var(--bg-1)', border: 'none', borderBottom: '1px solid var(--border)', padding: '10px 0', color: 'var(--fg)', fontSize: 15, outline: 'none', appearance: 'none' }}>
-                    {['Roupa & Moda', 'Loja — Compra', 'Trocas & Devoluções', 'Encomendas', 'Parcerias', 'Outro'].map(o => <option key={o}>{o}</option>)}
+                    {T.contact.areas.map(o => <option key={o}>{o}</option>)}
                   </select>
                 </div>
 
                 <div style={{ marginBottom: 28 }}>
-                  <label style={{ display: 'block', fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8, fontWeight: 500 }}>Mensagem</label>
-                  <textarea value={form.msg} onChange={e => setForm(prev => ({ ...prev, msg: e.target.value }))} placeholder="Descreva o seu projeto ou necessidade..." rows={4}
+                  <label style={{ display: 'block', fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8, fontWeight: 500 }}>{T.contact.lMsg}</label>
+                  <textarea value={form.msg} onChange={e => setForm(prev => ({ ...prev, msg: e.target.value }))} placeholder={T.contact.msgPh} rows={4}
                     style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '10px 0', color: 'var(--fg)', fontSize: 15, outline: 'none', resize: 'vertical', transition: 'border-color .2s' }}
                     onFocus={e => (e.currentTarget.style.borderBottomColor = 'var(--gold)')}
                     onBlur={e => (e.currentTarget.style.borderBottomColor = 'var(--border)')} />
@@ -1678,9 +2035,9 @@ function ContactPage() {
                   try {
                     await submitToFormspree({ nome: form.nome, email: form.email, area: form.area, mensagem: form.msg })
                     setSent(true)
-                  } catch { setError('Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com') }
+                  } catch { setError(T.contact.errSend) }
                   setLoading(false)
-                }}>{loading ? 'A enviar…' : 'Enviar Pedido'}</PrimaryBtn>
+                }}>{loading ? T.contact.sending : T.contact.send}</PrimaryBtn>
                 {error && <p style={{ marginTop: 12, fontSize: 13, color: 'var(--bordo)', lineHeight: 1.5 }}>⚠ {error}</p>}
               </>
             )}
@@ -1694,25 +2051,25 @@ function ContactPage() {
 // ─── AboutPage ────────────────────────────────────────────────────────────────
 
 function AboutPage({ setPage }: { setPage: (p: Page) => void }) {
+  const T = useT()
   return (
     <div style={{ minHeight: '80vh' }}>
       <div style={{ background: 'radial-gradient(700px 400px at 85% 20%, rgba(139,30,45,.18), transparent 60%), var(--bg-1)', borderBottom: '1px solid var(--border)', padding: '80px var(--pad-x) 60px' }}>
         <div style={{ maxWidth: 'var(--maxw)', margin: '0 auto' }}>
-          <Eyebrow text="Quem Somos" />
-          <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(44px,6vw,88px)', fontWeight: 500, margin: '20px 0 24px', lineHeight: 1.05 }}>
-            Uma equipa, uma <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>visão</em>.
-          </h1>
+          <Eyebrow text={T.about.eyebrow} />
+          <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(44px,6vw,88px)', fontWeight: 500, margin: '20px 0 24px', lineHeight: 1.05 }}
+            dangerouslySetInnerHTML={{ __html: T.about.title }} />
           <p style={{ color: 'var(--fg-dim)', fontSize: 17, maxWidth: '60ch', lineHeight: 1.7 }}>
-            A Karmic Node nasceu com o objetivo de oferecer moda com identidade — peças atemporais, cuidadosamente selecionadas, que combinam estilo, qualidade e consciência. Uma marca feita para quem valoriza o que veste.
+            {T.about.desc}
           </p>
         </div>
       </div>
 
       <div className="wrap" style={{ padding: '60px var(--pad-x) 80px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24, marginBottom: 60 }}>
-          {[['M.', 'Missão', 'Democratizar o acesso a moda de qualidade, oferecendo peças atemporais que transmitem confiança e identidade — com atenção ao detalhe e respeito pelo cliente.'],
-            ['V.', 'Visão', 'Ser uma referência portuguesa de moda consciente, reconhecida pela curadoria rigorosa, qualidade dos materiais e proximidade com quem nos escolhe.'],
-            ['V.', 'Valores', 'Profissionalismo, Compromisso, Qualidade, Inovação, Proximidade, Rigor e Criatividade — em cada entrega, sem exceções.'],
+          {[['M.', T.about.mission, T.about.missionText],
+            ['V.', T.about.vision, T.about.visionText],
+            ['V.', T.about.values, T.about.valuesText],
           ].map(([k, h, p]) => (
             <div key={h} style={{ padding: '36px 28px', border: '1px solid var(--border)', background: 'linear-gradient(180deg,var(--bg-1) 0%,var(--bg) 100%)', position: 'relative' }}>
               <div style={{ position: 'absolute', top: -1, left: 24, right: 24, height: 1, background: 'var(--gold)' }} />
@@ -1724,16 +2081,15 @@ function AboutPage({ setPage }: { setPage: (p: Page) => void }) {
         </div>
 
         <div style={{ background: `radial-gradient(700px 400px at 50% 0%, rgba(139,30,45,.3), transparent 70%), var(--bg-1)`, border: '1px solid var(--border)', padding: 'clamp(48px,6vw,80px)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
-          <Eyebrow text="Juntos" />
-          <h2 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(28px,3vw,44px)', fontWeight: 500, margin: '20px 0 16px' }}>
-            Confiança construída em cada <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>detalhe</em>.
-          </h2>
+          <Eyebrow text={T.about.juntos} />
+          <h2 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(28px,3vw,44px)', fontWeight: 500, margin: '20px 0 16px' }}
+            dangerouslySetInnerHTML={{ __html: T.about.ctaTitle }} />
           <p style={{ color: 'var(--fg-dim)', fontSize: 16, maxWidth: '44ch', margin: '0 auto 34px' }}>
-            Descubra os nossos produtos e serviços — ou fale diretamente connosco.
+            {T.about.ctaDesc}
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <PrimaryBtn onClick={() => setPage('shop')}>Visitar a Loja</PrimaryBtn>
-            <GhostBtn onClick={() => setPage('contact')}>Contactar</GhostBtn>
+            <PrimaryBtn onClick={() => setPage('shop')}>{T.about.ctaShop}</PrimaryBtn>
+            <GhostBtn onClick={() => setPage('contact')}>{T.about.ctaContact}</GhostBtn>
           </div>
         </div>
       </div>
@@ -1747,6 +2103,7 @@ const BLOG_CATS = ['Todos', 'Estilo', 'Tendências', 'Cuidados', 'Sustentabilida
 
 function BlogCard({ post, onClick }: { post: BlogPost; onClick: () => void }) {
   const [hov, setHov] = useState(false)
+  const T = useT()
   return (
     <article onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{ background: 'var(--bg-1)', border: `1px solid ${hov ? 'var(--gold-3)' : 'var(--border)'}`, cursor: 'pointer', display: 'flex', flexDirection: 'column', transition: 'border-color .3s, transform .3s, box-shadow .3s', transform: hov ? 'translateY(-4px)' : 'none', boxShadow: hov ? '0 16px 48px rgba(0,0,0,.4)' : 'none' }}>
@@ -1763,7 +2120,7 @@ function BlogCard({ post, onClick }: { post: BlogPost; onClick: () => void }) {
         <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 20, fontWeight: 500, lineHeight: 1.25, margin: 0, color: hov ? 'var(--gold-2)' : 'var(--fg)', transition: 'color .2s' }}>{post.title}</h3>
         <p style={{ fontSize: 14, color: 'var(--fg-dim)', lineHeight: 1.65, margin: 0, flex: 1 }}>{post.excerpt}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--gold)', letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 500, marginTop: 6 }}>
-          Ler artigo
+          {T.blog.readMore}
           <svg width="10" height="8" viewBox="0 0 14 10" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 5h12M9 1l4 4-4 4" /></svg>
         </div>
       </div>
@@ -1772,6 +2129,7 @@ function BlogCard({ post, onClick }: { post: BlogPost; onClick: () => void }) {
 }
 
 function BlogArticle({ post, onBack }: { post: BlogPost; onBack: () => void }) {
+  const T = useT()
   return (
     <div style={{ minHeight: '80vh' }}>
       {/* Hero */}
@@ -1798,7 +2156,7 @@ function BlogArticle({ post, onBack }: { post: BlogPost; onBack: () => void }) {
         <div style={{ maxWidth: 'var(--maxw)', margin: '0 auto', display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--fg-mute)' }}>
           <span style={{ cursor: 'pointer', transition: 'color .2s' }} onClick={onBack}
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'var(--fg-mute)')}>← Blog</span>
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--fg-mute)')}>{T.blog.backToBlog}</span>
           <span style={{ color: 'var(--border-2)' }}>/</span>
           <span style={{ color: 'var(--gold)' }}>{post.category}</span>
           <span style={{ color: 'var(--border-2)' }}>/</span>
@@ -1817,7 +2175,7 @@ function BlogArticle({ post, onBack }: { post: BlogPost; onBack: () => void }) {
           ))}
 
           <div style={{ marginTop: 56, paddingTop: 40, borderTop: '1px solid var(--border)', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-mute)' }}>Categoria:</span>
+            <span style={{ fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-mute)' }}>{T.blog.catLabel}</span>
             <span style={{ padding: '5px 14px', border: '1px solid var(--gold-3)', color: 'var(--gold)', fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase' }}>{post.category}</span>
           </div>
 
@@ -1827,7 +2185,7 @@ function BlogArticle({ post, onBack }: { post: BlogPost; onBack: () => void }) {
             </div>
             <div>
               <div style={{ fontFamily: 'var(--f-display)', fontSize: 17, fontWeight: 500 }}>{post.author}</div>
-              <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginTop: 2 }}>Equipa Karmic Node · Moda &amp; Estilo</div>
+              <div style={{ fontSize: 12, color: 'var(--fg-mute)', marginTop: 2 }}>Equipa Karmic Node · {T.blog.authorRole}</div>
             </div>
           </div>
         </div>
@@ -1837,6 +2195,7 @@ function BlogArticle({ post, onBack }: { post: BlogPost; onBack: () => void }) {
 }
 
 function BlogPage() {
+  const T = useT()
   const [activePost, setActivePost] = useState<BlogPost | null>(null)
   const [activeCat, setActiveCat] = useState('Todos')
   const [search, setSearch] = useState('')
@@ -1858,19 +2217,18 @@ function BlogPage() {
       {/* Hero */}
       <div style={{ background: 'radial-gradient(900px 500px at 70% 50%, rgba(139,30,45,.22), transparent 65%), var(--bg-1)', borderBottom: '1px solid var(--border)', padding: 'clamp(64px,8vw,100px) var(--pad-x) clamp(48px,6vw,72px)' }}>
         <div style={{ maxWidth: 'var(--maxw)', margin: '0 auto' }}>
-          <Eyebrow text="Blog" />
-          <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(44px,6vw,88px)', fontWeight: 500, margin: '20px 0 20px', lineHeight: 1.05 }}>
-            Moda em <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>foco</em>.
-          </h1>
+          <Eyebrow text={T.blog.eyebrow} />
+          <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(44px,6vw,88px)', fontWeight: 500, margin: '20px 0 20px', lineHeight: 1.05 }}
+            dangerouslySetInnerHTML={{ __html: T.blog.title }} />
           <p style={{ color: 'var(--fg-dim)', fontSize: 17, maxWidth: '52ch', lineHeight: 1.65, marginBottom: 36 }}>
-            Tendências, guias de estilo e dicas de moda — escritos pela equipa Karmic Node.
+            {T.blog.desc}
           </p>
           {/* Search */}
           <div style={{ display: 'flex', border: '1px solid var(--border)', background: 'var(--bg-2)', maxWidth: 440 }}
             onFocusCapture={e => (e.currentTarget.style.borderColor = 'var(--gold-3)')}
             onBlurCapture={e => (e.currentTarget.style.borderColor = 'var(--border)')}>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--fg-mute)" strokeWidth="1.8" style={{ margin: '0 12px', flexShrink: 0, alignSelf: 'center' }}><circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" /></svg>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Pesquisar artigos…"
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={T.blog.searchPh}
               style={{ flex: 1, background: 'transparent', border: 'none', padding: '13px 0', color: 'var(--fg)', fontFamily: 'var(--f-sans)', fontSize: 14, outline: 'none' }} />
           </div>
         </div>
@@ -1889,7 +2247,7 @@ function BlogPage() {
         {/* Featured post */}
         {featured && activeCat === 'Todos' && !search && (
           <div style={{ marginBottom: 64 }}>
-            <Eyebrow text="Destaque" />
+            <Eyebrow text={T.blog.featured} />
             <article onClick={() => { setActivePost(featured); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
               style={{ marginTop: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, border: '1px solid var(--border)', background: 'var(--bg-1)', cursor: 'pointer', overflow: 'hidden', transition: 'border-color .3s' }}
               onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--gold-3)')}
@@ -1909,7 +2267,7 @@ function BlogPage() {
                   <span>{featured.readTime} min de leitura</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--gold)', letterSpacing: '.16em', textTransform: 'uppercase', fontWeight: 500 }}>
-                  Ler artigo
+                  {T.blog.readMore}
                   <svg width="10" height="8" viewBox="0 0 14 10" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M1 5h12M9 1l4 4-4 4" /></svg>
                 </div>
               </div>
@@ -1920,7 +2278,7 @@ function BlogPage() {
         {/* Grid */}
         {rest.length > 0 ? (
           <>
-            {(activeCat !== 'Todos' || search) ? null : <Eyebrow text="Todos os artigos" />}
+            {(activeCat !== 'Todos' || search) ? null : <Eyebrow text={T.blog.allArticles} />}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 24, marginTop: activeCat === 'Todos' && !search ? 28 : 0 }}>
               {rest.map(post => (
                 <BlogCard key={post.id} post={post} onClick={() => { setActivePost(post); window.scrollTo({ top: 0, behavior: 'smooth' }) }} />
@@ -1929,8 +2287,8 @@ function BlogPage() {
           </>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--fg-mute)' }}>
-            <div style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 12 }}>Nenhum artigo encontrado</div>
-            <div style={{ fontSize: 14 }}>Tente outra pesquisa ou categoria.</div>
+            <div style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 12 }}>{T.blog.noResults}</div>
+            <div style={{ fontSize: 14 }}>{T.blog.noResultsDesc}</div>
           </div>
         ) : null}
       </div>
@@ -1939,30 +2297,6 @@ function BlogPage() {
 }
 
 // ─── CustomPage ───────────────────────────────────────────────────────────────
-
-const CUSTOM_GARMENTS = [
-  { id: 'tshirt', label: 'T-Shirt', icon: '👕', desc: 'Corte reto, unissexo ou fit' },
-  { id: 'hoodie', label: 'Hoodie', icon: '🧥', desc: 'Com capuz, bolso canguru' },
-  { id: 'polo', label: 'Polo', icon: '👔', desc: 'Elegante, com gola' },
-  { id: 'sweat', label: 'Sweatshirt', icon: '🥋', desc: 'Sem capuz, clássica' },
-  { id: 'cap', label: 'Boné', icon: '🧢', desc: 'Snapback ou strapback' },
-  { id: 'bag', label: 'Tote Bag', icon: '👜', desc: 'Algodão 100%, resistente' },
-]
-
-const CUSTOM_FABRICS = [
-  { id: 'cotton', label: 'Algodão 100%', note: 'Respirável · Durável' },
-  { id: 'cotton_poly', label: 'Algodão/Poliéster', note: 'Anti-rugas · Económico' },
-  { id: 'organic', label: 'Algodão Orgânico', note: 'Sustentável · Certificado' },
-  { id: 'premium', label: 'Premium Pima', note: 'Suave · Luxo' },
-]
-
-const CUSTOM_PRINTS = [
-  { id: 'embroidery', label: 'Bordado', note: 'Elegante · Alta durabilidade' },
-  { id: 'dtg', label: 'Impressão DTG', note: 'Cores vivas · Foto-realismo' },
-  { id: 'screen', label: 'Serigrafia', note: 'Ideal ≥ 20 unidades' },
-  { id: 'heat', label: 'Vinil Térmico', note: 'Acabamento premium' },
-  { id: 'patch', label: 'Patch / Etiqueta', note: 'Look exclusivo' },
-]
 
 const CUSTOM_COLORS = [
   '#F5F2ED', '#0B0B0C', '#8B1E2D', '#B08D57',
@@ -1979,15 +2313,8 @@ const GALLERY_ITEMS = [
   { img: 'https://images.unsplash.com/photo-1597248374161-426f0d6d2fc9?w=600&h=700&fit=crop', label: 'Tote Bag Exclusiva', cat: 'Impressão DTG' },
 ]
 
-const CUSTOM_FAQS = [
-  { q: 'Qual o mínimo de unidades?', a: 'Para a maioria das técnicas aceitamos a partir de 1 unidade. Para serigrafia, o mínimo são 20 unidades para manter o preço competitivo.' },
-  { q: 'Que formatos de ficheiro aceitam?', a: 'Aceitamos ficheiros vetoriais (AI, EPS, SVG, PDF) e raster de alta resolução (PNG/JPG a 300dpi no mínimo). Para bordado, utilizamos os seus ficheiros e fazemos a digitalização incluída no serviço.' },
-  { q: 'Qual é o prazo de produção?', a: 'O prazo standard é de 10 a 15 dias úteis após aprovação da prova. Temos serviço urgente (5-7 dias úteis) com acréscimo de 30%.' },
-  { q: 'É possível ver uma prova antes da produção?', a: 'Sim. Enviamos sempre uma prova digital para aprovação antes de iniciarmos a produção. Para encomendas ≥ 50 unidades, podemos enviar uma amostra física.' },
-  { q: 'Fazem envio para todo o Portugal?', a: 'Sim, enviamos para Portugal Continental e Ilhas. Para encomendas empresariais, disponibilizamos envio para a Europa.' },
-]
-
 function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
+  const T = useT()
   const [step, setStep] = useState(1)
   const [garment, setGarment] = useState('')
   const [fabric, setFabric] = useState('')
@@ -2023,9 +2350,9 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
   const handleSubmit = async () => {
     if (!canSubmit) return
     setLoading(true); setError('')
-    const garmentLabel = CUSTOM_GARMENTS.find(g => g.id === garment)?.label ?? garment
-    const fabricLabel = CUSTOM_FABRICS.find(f => f.id === fabric)?.label ?? fabric
-    const printLabel = CUSTOM_PRINTS.find(p => p.id === printType)?.label ?? printType
+    const garmentLabel = T.custom.garments.find(g => g.id === garment)?.label ?? garment
+    const fabricLabel = T.custom.fabrics.find(f => f.id === fabric)?.label ?? fabric
+    const printLabel = T.custom.prints.find(p => p.id === printType)?.label ?? printType
     const p = estimatePrice()
     try {
       await submitToFormspree({
@@ -2038,7 +2365,7 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
         formulario: 'Roupa Personalizada',
       })
       setSent(true)
-    } catch { setError('Erro ao enviar. Tente novamente ou contacte karmicnode@gmail.com') }
+    } catch { setError(T.custom.errSend) }
     setLoading(false)
   }
 
@@ -2051,20 +2378,20 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(105deg, rgba(11,11,12,.92) 45%, rgba(11,11,12,.4) 100%)' }} />
         <div className="wrap" style={{ position: 'relative', zIndex: 2, padding: 'clamp(64px,8vw,100px) var(--pad-x)' }}>
           <div style={{ maxWidth: 680 }}>
-            <Eyebrow text="Roupa Personalizada" />
+            <Eyebrow text={T.custom.eyebrow} />
             <h1 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(42px,6vw,84px)', fontWeight: 500, margin: '20px 0 22px', lineHeight: 1.05 }}>
-              A tua marca,<br />
-              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>a tua peça.</em>
+              {T.custom.heroTitle}<br />
+              <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>{T.custom.heroTitleEm}</em>
             </h1>
             <p style={{ color: 'rgba(245,242,237,.75)', fontSize: 17, maxWidth: '48ch', lineHeight: 1.7, marginBottom: 38 }}>
-              Criamos roupa personalizada para empresas, eventos, equipas e projetos individuais. Do design à entrega — tratamos de tudo.
+              {T.custom.heroDesc}
             </p>
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               <PrimaryBtn onClick={() => document.getElementById('configurador')?.scrollIntoView({ behavior: 'smooth' })}>
-                Configurar agora
+                {T.custom.ctaConfig}
               </PrimaryBtn>
               <GhostBtn onClick={() => document.getElementById('galeria')?.scrollIntoView({ behavior: 'smooth' })}>
-                Ver exemplos
+                {T.custom.ctaGallery}
               </GhostBtn>
             </div>
           </div>
@@ -2074,14 +2401,9 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
       {/* COMO FUNCIONA */}
       <section style={{ padding: 'clamp(64px,7vw,96px) 0', background: 'var(--bg-1)', borderBottom: '1px solid var(--border)' }}>
         <div className="wrap">
-          <SectionHead eyebrow="Processo" title="Como <em class='gold-text'>funciona</em>." lead="Simples, rápido e sem complicações — da ideia à peça final em 4 passos." />
+          <SectionHead eyebrow={T.custom.howEyebrow} title={T.custom.howTitle} lead={T.custom.howLead} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0, marginTop: 52, border: '1px solid var(--border)' }}>
-            {[
-              { n: '01', title: 'Configura', desc: 'Escolhe o artigo, tecido, técnica de personalização e cores no nosso configurador.' },
-              { n: '02', title: 'Pede orçamento', desc: 'Submete o pedido com o teu design ou ideia. Respondemos em 24h com proposta.' },
-              { n: '03', title: 'Aprova a prova', desc: 'Enviamos uma prova digital (ou física ≥50 unid.) antes de iniciar a produção.' },
-              { n: '04', title: 'Recebe', desc: 'Produção em 10-15 dias úteis. Entregamos em qualquer ponto de Portugal.' },
-            ].map((s, i) => (
+            {T.custom.steps.map((s, i) => (
               <div key={s.n} style={{ padding: 'clamp(28px,3vw,44px) clamp(20px,2.5vw,36px)', borderRight: i < 3 ? '1px solid var(--border)' : 'none', position: 'relative' }}>
                 <div style={{ fontFamily: 'var(--f-display)', fontStyle: 'italic', fontSize: 56, color: 'rgba(176,141,87,.12)', fontWeight: 600, lineHeight: 1, marginBottom: 16, userSelect: 'none' }}>{s.n}</div>
                 <div style={{ position: 'absolute', top: 28, left: 'clamp(20px,2.5vw,36px)', fontFamily: 'var(--f-sans)', fontSize: 10, letterSpacing: '.24em', color: 'var(--gold)', fontWeight: 600, textTransform: 'uppercase' }}>{s.n}</div>
@@ -2096,17 +2418,17 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
       {/* CONFIGURADOR */}
       <section id="configurador" style={{ padding: 'clamp(64px,7vw,100px) 0', borderBottom: '1px solid var(--border)' }}>
         <div className="wrap">
-          <SectionHead eyebrow="Configurador" title="Cria a tua <em class='gold-text'>peça única</em>." lead="Personaliza passo a passo e obtém uma estimativa de preço em tempo real." />
+          <SectionHead eyebrow={T.custom.configEyebrow} title={T.custom.configTitle} lead={T.custom.configLead} />
 
           {sent ? (
             <div style={{ maxWidth: 580, margin: '52px auto 0', textAlign: 'center', padding: 'clamp(48px,6vw,72px)', border: '1px solid var(--gold-3)', background: 'var(--bg-1)' }}>
               <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.2" style={{ margin: '0 auto 24px' }}>
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
               </svg>
-              <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 32, marginBottom: 14 }}>Pedido enviado!</h3>
-              <p style={{ color: 'var(--fg-dim)', fontSize: 15, lineHeight: 1.7, marginBottom: 28 }}>Entraremos em contacto em menos de 24 horas com uma proposta personalizada para o seu projeto.</p>
+              <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 32, marginBottom: 14 }}>{T.custom.okTitle}</h3>
+              <p style={{ color: 'var(--fg-dim)', fontSize: 15, lineHeight: 1.7, marginBottom: 28 }}>{T.custom.okDesc}</p>
               <PrimaryBtn onClick={() => { setSent(false); setStep(1); setGarment(''); setFabric(''); setPrintType(''); setNotes(''); setName(''); setEmail(''); setPhone('') }}>
-                Novo pedido
+                {T.custom.newReq}
               </PrimaryBtn>
             </div>
           ) : (
@@ -2116,7 +2438,7 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
               <div style={{ border: '1px solid var(--border)', background: 'var(--bg-1)' }}>
                 {/* Progress bar */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid var(--border)' }}>
-                  {['Artigo', 'Material', 'Técnica', 'Contacto'].map((label, i) => {
+                  {T.custom.stepLabels.map((label, i) => {
                     const s = i + 1
                     const done = step > s
                     const active = step === s
@@ -2139,10 +2461,10 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                   {/* STEP 1 — Artigo */}
                   {step === 1 && (
                     <div>
-                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>Que artigo queres personalizar?</h3>
-                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>Escolhe o tipo de peça para o teu projeto.</p>
+                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>{T.custom.s1Title}</h3>
+                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>{T.custom.s1Desc}</p>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
-                        {CUSTOM_GARMENTS.map(g => (
+                        {T.custom.garments.map(g => (
                           <button key={g.id} onClick={() => setGarment(g.id)}
                             style={{ padding: '20px 14px', border: `1px solid ${garment === g.id ? 'var(--gold)' : 'var(--border)'}`, background: garment === g.id ? 'rgba(176,141,87,.08)' : 'transparent', cursor: 'pointer', textAlign: 'center', transition: 'all .2s ease', position: 'relative' }}>
                             {garment === g.id && <div style={{ position: 'absolute', top: 8, right: 8, width: 16, height: 16, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: 8, color: '#0B0B0C', fontWeight: 800 }}>✓</span></div>}
@@ -2154,7 +2476,7 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                       </div>
                       <div style={{ marginTop: 28, display: 'flex', justifyContent: 'flex-end' }}>
                         <PrimaryBtn onClick={() => { if (canNext1) setStep(2) }}>
-                          Continuar →
+                          {T.custom.next}
                         </PrimaryBtn>
                       </div>
                     </div>
@@ -2163,10 +2485,10 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                   {/* STEP 2 — Material */}
                   {step === 2 && (
                     <div>
-                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>Qual o material?</h3>
-                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>O tecido define o conforto, durabilidade e toque da peça.</p>
+                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>{T.custom.s2Title}</h3>
+                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>{T.custom.s2Desc}</p>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        {CUSTOM_FABRICS.map(f => (
+                        {T.custom.fabrics.map(f => (
                           <button key={f.id} onClick={() => setFabric(f.id)}
                             style={{ padding: '18px 20px', border: `1px solid ${fabric === f.id ? 'var(--gold)' : 'var(--border)'}`, background: fabric === f.id ? 'rgba(176,141,87,.08)' : 'transparent', cursor: 'pointer', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all .2s ease' }}>
                             <div>
@@ -2180,8 +2502,8 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                         ))}
                       </div>
                       <div style={{ marginTop: 28, display: 'flex', justifyContent: 'space-between' }}>
-                        <GhostBtn onClick={() => setStep(1)}>← Voltar</GhostBtn>
-                        <PrimaryBtn onClick={() => { if (canNext2) setStep(3) }}>Continuar →</PrimaryBtn>
+                        <GhostBtn onClick={() => setStep(1)}>{T.custom.back}</GhostBtn>
+                        <PrimaryBtn onClick={() => { if (canNext2) setStep(3) }}>{T.custom.next}</PrimaryBtn>
                       </div>
                     </div>
                   )}
@@ -2189,13 +2511,13 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                   {/* STEP 3 — Técnica + cor + quantidade */}
                   {step === 3 && (
                     <div>
-                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>Técnica, cor e quantidade</h3>
-                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>Define como fica o teu design e quantas peças precisas.</p>
+                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>{T.custom.s3Title}</h3>
+                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>{T.custom.s3Desc}</p>
 
                       <div style={{ marginBottom: 24 }}>
-                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 12 }}>Técnica de personalização</label>
+                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 12 }}>{T.custom.lTechnique}</label>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 10 }}>
-                          {CUSTOM_PRINTS.map(p => (
+                          {T.custom.prints.map(p => (
                             <button key={p.id} onClick={() => setPrintType(p.id)}
                               style={{ padding: '14px 16px', border: `1px solid ${printType === p.id ? 'var(--gold)' : 'var(--border)'}`, background: printType === p.id ? 'rgba(176,141,87,.08)' : 'transparent', cursor: 'pointer', textAlign: 'left', transition: 'all .2s ease' }}>
                               <div style={{ fontSize: 13, fontWeight: 600, color: printType === p.id ? 'var(--gold)' : 'var(--fg)', marginBottom: 3 }}>{p.label}</div>
@@ -2206,7 +2528,7 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                       </div>
 
                       <div style={{ marginBottom: 24 }}>
-                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 12 }}>Cor base da peça</label>
+                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 12 }}>{T.custom.lColor}</label>
                         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                           {CUSTOM_COLORS.map(c => (
                             <button key={c} onClick={() => setColor(c)}
@@ -2216,7 +2538,7 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                       </div>
 
                       <div style={{ marginBottom: 24 }}>
-                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 12 }}>Quantidade — <span style={{ color: 'var(--fg)' }}>{qty} unidades</span></label>
+                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 12 }}>{T.custom.lQty} — <span style={{ color: 'var(--fg)' }}>{qty} {T.custom.sUnits}</span></label>
                         <input type="range" min={1} max={500} value={qty} onChange={e => setQty(Number(e.target.value))}
                           style={{ width: '100%', accentColor: 'var(--gold)', cursor: 'pointer' }} />
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--fg-mute)', marginTop: 6 }}>
@@ -2234,17 +2556,17 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                       </div>
 
                       <div style={{ marginBottom: 8 }}>
-                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 10 }}>Notas adicionais <span style={{ color: 'var(--fg-mute)', fontWeight: 400 }}>(opcional)</span></label>
+                        <label style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, display: 'block', marginBottom: 10 }}>{T.custom.lNotes} <span style={{ color: 'var(--fg-mute)', fontWeight: 400 }}>{T.custom.lNotesSub}</span></label>
                         <textarea value={notes} onChange={e => setNotes(e.target.value)}
-                          placeholder="Descreve o teu design, logo, texto a incluir, referências..."
+                          placeholder={T.custom.notesPh}
                           rows={3} style={{ width: '100%', background: 'transparent', border: '1px solid var(--border)', padding: '12px 14px', color: 'var(--fg)', fontSize: 14, outline: 'none', resize: 'vertical', fontFamily: 'var(--f-sans)', transition: 'border-color .2s', boxSizing: 'border-box' }}
                           onFocus={e => (e.currentTarget.style.borderColor = 'var(--gold-3)')}
                           onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')} />
                       </div>
 
                       <div style={{ marginTop: 28, display: 'flex', justifyContent: 'space-between' }}>
-                        <GhostBtn onClick={() => setStep(2)}>← Voltar</GhostBtn>
-                        <PrimaryBtn onClick={() => { if (canNext3) setStep(4) }}>Continuar →</PrimaryBtn>
+                        <GhostBtn onClick={() => setStep(2)}>{T.custom.back}</GhostBtn>
+                        <PrimaryBtn onClick={() => { if (canNext3) setStep(4) }}>{T.custom.next}</PrimaryBtn>
                       </div>
                     </div>
                   )}
@@ -2252,12 +2574,12 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                   {/* STEP 4 — Contacto */}
                   {step === 4 && (
                     <div>
-                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>Os teus dados de contacto</h3>
-                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>Preenchidos, enviamos-te uma proposta personalizada em 24h.</p>
+                      <h3 style={{ fontFamily: 'var(--f-display)', fontSize: 24, marginBottom: 6 }}>{T.custom.s4Title}</h3>
+                      <p style={{ color: 'var(--fg-mute)', fontSize: 14, marginBottom: 28 }}>{T.custom.s4Desc}</p>
                       {[
-                        { id: 'name', label: 'Nome / Empresa', ph: 'O teu nome ou empresa', val: name, set: setName, type: 'text' },
-                        { id: 'email', label: 'Email', ph: 'email@exemplo.pt', val: email, set: setEmail, type: 'email' },
-                        { id: 'phone', label: 'Telefone', ph: '+351 9xx xxx xxx', val: phone, set: setPhone, type: 'tel' },
+                        { id: 'name', label: T.custom.lName, ph: T.custom.namePh, val: name, set: setName, type: 'text' },
+                        { id: 'email', label: 'Email', ph: T.contact.emailPh, val: email, set: setEmail, type: 'email' },
+                        { id: 'phone', label: T.custom.lPhone, ph: T.custom.phonePh, val: phone, set: setPhone, type: 'tel' },
                       ].map(f => (
                         <div key={f.id} style={{ marginBottom: 22 }}>
                           <label style={{ display: 'block', fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8, fontWeight: 600 }}>{f.label}{f.id !== 'phone' && ' *'}</label>
@@ -2269,8 +2591,8 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
                       ))}
                       <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column', gap: 12 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-                          <GhostBtn onClick={() => setStep(3)}>← Voltar</GhostBtn>
-                          <PrimaryBtn onClick={handleSubmit}>{loading ? 'A enviar…' : 'Pedir orçamento'}</PrimaryBtn>
+                          <GhostBtn onClick={() => setStep(3)}>{T.custom.back}</GhostBtn>
+                          <PrimaryBtn onClick={handleSubmit}>{loading ? T.custom.submitting : T.custom.submit}</PrimaryBtn>
                         </div>
                         {error && <p style={{ fontSize: 13, color: 'var(--bordo)', lineHeight: 1.5, margin: 0 }}>{error}</p>}
                       </div>
@@ -2282,14 +2604,14 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
               {/* Resumo / Estimativa */}
               <div style={{ position: 'sticky', top: 90, display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ border: '1px solid var(--border)', background: 'var(--bg-1)', padding: '28px 24px' }}>
-                  <div style={{ fontSize: 10, letterSpacing: '.24em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, marginBottom: 20 }}>Resumo da configuração</div>
+                  <div style={{ fontSize: 10, letterSpacing: '.24em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 600, marginBottom: 20 }}>{T.custom.summaryTitle}</div>
 
                   {[
-                    { label: 'Artigo', value: garment ? CUSTOM_GARMENTS.find(g => g.id === garment)?.label : '—' },
-                    { label: 'Material', value: fabric ? CUSTOM_FABRICS.find(f => f.id === fabric)?.label : '—' },
-                    { label: 'Técnica', value: printType ? CUSTOM_PRINTS.find(p => p.id === printType)?.label : '—' },
-                    { label: 'Cor base', value: color ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 14, borderRadius: '50%', background: color, display: 'inline-block', border: '1px solid var(--border)' }} />{color}</span> : '—' },
-                    { label: 'Quantidade', value: qty ? `${qty} un.` : '—' },
+                    { label: T.custom.sGarment, value: garment ? T.custom.garments.find(g => g.id === garment)?.label : '—' },
+                    { label: T.custom.sMaterial, value: fabric ? T.custom.fabrics.find(f => f.id === fabric)?.label : '—' },
+                    { label: T.custom.sTechnique, value: printType ? T.custom.prints.find(p => p.id === printType)?.label : '—' },
+                    { label: T.custom.sColor, value: color ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 14, height: 14, borderRadius: '50%', background: color, display: 'inline-block', border: '1px solid var(--border)' }} />{color}</span> : '—' },
+                    { label: T.custom.sQty, value: qty ? `${qty} ${T.custom.sUnits}` : '—' },
                   ].map(row => (
                     <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)', gap: 12 }}>
                       <span style={{ fontSize: 12, color: 'var(--fg-mute)' }}>{row.label}</span>
@@ -2299,35 +2621,35 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
 
                   {price ? (
                     <div style={{ marginTop: 20, padding: '16px 0', borderTop: '1px solid var(--gold-3)' }}>
-                      <div style={{ fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--fg-mute)', marginBottom: 10 }}>Estimativa de preço*</div>
+                      <div style={{ fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--fg-mute)', marginBottom: 10 }}>{T.custom.priceTitle}</div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <span style={{ fontSize: 13, color: 'var(--fg-dim)' }}>Preço unitário</span>
+                        <span style={{ fontSize: 13, color: 'var(--fg-dim)' }}>{T.custom.priceUnit}</span>
                         <span style={{ fontSize: 14, fontWeight: 600 }}>{price.unit}€</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ fontSize: 13, color: 'var(--fg-dim)' }}>Total estimado</span>
+                        <span style={{ fontSize: 13, color: 'var(--fg-dim)' }}>{T.custom.priceTotal}</span>
                         <span style={{ fontSize: 18, fontFamily: 'var(--f-display)', color: 'var(--gold)', fontWeight: 500 }}>{price.total}€</span>
                       </div>
                       {qty >= 10 && (
                         <div style={{ marginTop: 12, padding: '8px 12px', background: 'rgba(176,141,87,.08)', border: '1px solid var(--gold-3)', fontSize: 11, color: 'var(--gold)' }}>
-                          ✓ Desconto de quantidade aplicado ({qty >= 50 ? '15%' : qty >= 20 ? '10%' : '5%'} off)
+                          {T.custom.priceDiscount(qty >= 50 ? '15%' : qty >= 20 ? '10%' : '5%')}
                         </div>
                       )}
-                      <p style={{ fontSize: 10, color: 'var(--fg-mute)', margin: '12px 0 0', lineHeight: 1.6 }}>*Estimativa indicativa. O preço final é confirmado após análise do pedido.</p>
+                      <p style={{ fontSize: 10, color: 'var(--fg-mute)', margin: '12px 0 0', lineHeight: 1.6 }}>{T.custom.priceNote}</p>
                     </div>
                   ) : (
                     <div style={{ marginTop: 20, padding: '16px', background: 'rgba(176,141,87,.05)', border: '1px dashed var(--border)', textAlign: 'center', color: 'var(--fg-mute)', fontSize: 13 }}>
-                      Complete a configuração para ver a estimativa de preço
+                      {T.custom.priceEmpty}
                     </div>
                   )}
                 </div>
 
                 <div style={{ border: '1px solid var(--border)', background: 'var(--bg-1)', padding: '20px 24px' }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 14, color: 'var(--fg)' }}>Precisa de ajuda?</div>
+                  <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 14, color: 'var(--fg)' }}>{T.custom.helpTitle}</div>
                   {[
                     ['📞', 'karmicnode@gmail.com'],
-                    ['⚡', 'Resposta em menos de 24h'],
-                    ['🔒', 'Orçamento sem compromisso'],
+                    ['⚡', T.custom.helpReply],
+                    ['🔒', T.custom.helpNoObl],
                   ].map(([icon, text]) => (
                     <div key={text} style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10, fontSize: 13, color: 'var(--fg-mute)' }}>
                       <span>{icon}</span><span>{text}</span>
@@ -2343,7 +2665,7 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
       {/* GALERIA */}
       <section id="galeria" style={{ padding: 'clamp(64px,7vw,100px) 0', background: 'var(--bg-1)', borderBottom: '1px solid var(--border)' }}>
         <div className="wrap">
-          <SectionHead eyebrow="Galeria" title="Exemplos do nosso <em class='gold-text'>trabalho</em>." lead="Cada peça é única. Estas são algumas das criações que produzimos para os nossos clientes." />
+          <SectionHead eyebrow={T.custom.galleryEyebrow} title={T.custom.galleryTitle} lead={T.custom.galleryDesc} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 2, marginTop: 52 }}>
             {GALLERY_ITEMS.map((item, i) => {
               const [hov, setHov] = useState(false)
@@ -2366,16 +2688,9 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
       {/* VANTAGENS */}
       <section style={{ padding: 'clamp(64px,7vw,96px) 0', borderBottom: '1px solid var(--border)' }}>
         <div className="wrap">
-          <SectionHead eyebrow="Porquê nós" title="O que nos <em class='gold-text'>distingue</em>." />
+          <SectionHead eyebrow={T.custom.whyEyebrow} title={T.custom.whyTitle} />
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 16, marginTop: 52 }}>
-            {[
-              { icon: '🎨', title: 'Design incluído', desc: 'A nossa equipa ajuda-te a adaptar ou criar o teu design sem custos adicionais na maioria dos projetos.' },
-              { icon: '⏱️', title: 'Prazos cumpridos', desc: 'Produção em 10 a 15 dias úteis. Serviço urgente disponível com entrega em 5-7 dias.' },
-              { icon: '📦', title: 'Mínimos acessíveis', desc: 'A partir de 1 unidade em bordado e DTG. Para serigrafia, o mínimo são 20 unidades.' },
-              { icon: '✅', title: 'Prova antes de produzir', desc: 'Enviamos sempre uma prova digital para aprovação. Sem surpresas na entrega.' },
-              { icon: '🌱', title: 'Opções sustentáveis', desc: 'Algodão orgânico certificado GOTS disponível em todos os artigos de vestuário.' },
-              { icon: '🤝', title: 'Parcerias empresariais', desc: 'Acordos especiais para empresas com pedidos recorrentes. Fatura simplificada disponível.' },
-            ].map(v => (
+            {T.custom.advantages.map(v => (
               <div key={v.title} style={{ display: 'flex', gap: 20, padding: 'clamp(20px,2vw,28px)', border: '1px solid var(--border)', background: 'var(--bg-1)', alignItems: 'flex-start' }}>
                 <div style={{ fontSize: 24, flexShrink: 0, marginTop: 2 }}>{v.icon}</div>
                 <div>
@@ -2391,10 +2706,10 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
       {/* FAQ */}
       <section style={{ padding: 'clamp(64px,7vw,100px) 0', background: 'var(--bg-1)', borderBottom: '1px solid var(--border)' }}>
         <div className="wrap" style={{ maxWidth: 800, margin: '0 auto' }}>
-          <SectionHead eyebrow="FAQ" title="Perguntas <em class='gold-text'>frequentes</em>." />
+          <SectionHead eyebrow={T.custom.faqEyebrow} title={T.custom.faqTitle} />
           <div style={{ marginTop: 48, border: '1px solid var(--border)' }}>
-            {CUSTOM_FAQS.map((faq, i) => (
-              <div key={i} style={{ borderBottom: i < CUSTOM_FAQS.length - 1 ? '1px solid var(--border)' : 'none' }}>
+            {T.custom.faqs.map((faq, i) => (
+              <div key={i} style={{ borderBottom: i < T.custom.faqs.length - 1 ? '1px solid var(--border)' : 'none' }}>
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   style={{ width: '100%', padding: '22px 24px', background: openFaq === i ? 'rgba(176,141,87,.05)' : 'transparent', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, textAlign: 'left', transition: 'background .2s' }}>
                   <span style={{ fontFamily: 'var(--f-display)', fontSize: 17, fontWeight: 500, color: openFaq === i ? 'var(--gold)' : 'var(--fg)', transition: 'color .2s' }}>{faq.q}</span>
@@ -2414,18 +2729,17 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
       {/* CTA FINAL */}
       <section style={{ padding: 'clamp(64px,7vw,100px) 0', background: `radial-gradient(700px 400px at 50% 0%, rgba(139,30,45,.3), transparent 70%), var(--bg)`, textAlign: 'center' }}>
         <div className="wrap" style={{ maxWidth: 580 }}>
-          <Eyebrow text="Pronto para começar?" />
-          <h2 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(30px,3.5vw,52px)', fontWeight: 500, margin: '20px 0 16px', lineHeight: 1.1 }}>
-            Transforma a tua <em style={{ color: 'var(--gold)', fontStyle: 'italic' }}>ideia em roupa</em>.
-          </h2>
+          <Eyebrow text={T.custom.ctaFinalEyebrow} />
+          <h2 style={{ fontFamily: 'var(--f-display)', fontSize: 'clamp(30px,3.5vw,52px)', fontWeight: 500, margin: '20px 0 16px', lineHeight: 1.1 }}
+            dangerouslySetInnerHTML={{ __html: T.custom.ctaFinalTitle }} />
           <p style={{ color: 'var(--fg-mute)', fontSize: 15, marginBottom: 36, lineHeight: 1.7 }}>
-            Usa o configurador acima ou contacta-nos diretamente. Sem mínimos para começar.
+            {T.custom.ctaFinalDesc}
           </p>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <PrimaryBtn onClick={() => document.getElementById('configurador')?.scrollIntoView({ behavior: 'smooth' })}>
-              Configurar agora
+              {T.custom.ctaConfig}
             </PrimaryBtn>
-            <GhostBtn onClick={() => setPage('contact')}>Falar connosco</GhostBtn>
+            <GhostBtn onClick={() => setPage('contact')}>{T.custom.ctaFinalContact}</GhostBtn>
           </div>
         </div>
       </section>
@@ -2437,6 +2751,7 @@ function CustomPage({ setPage }: { setPage: (p: Page) => void }) {
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 function Footer({ setPage }: { setPage: (p: Page) => void }) {
+  const T = useT()
   return (
     <footer style={{ background: '#08080a', borderTop: '1px solid var(--border)', padding: 'clamp(56px,6vw,80px) var(--pad-x) 36px' }}>
       <div style={{ maxWidth: 'var(--maxw)', margin: '0 auto' }}>
@@ -2449,7 +2764,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
               </span>
             </div>
             <p style={{ color: 'var(--fg-mute)', fontSize: 14, lineHeight: 1.7, maxWidth: '30ch', marginBottom: 22 }}>
-              Moda com alma. Peças atemporais, selecionadas com rigor. Cartaxo, Portugal.
+              {T.footer.desc}
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               {['instagram', 'facebook', 'linkedin'].map(s => (
@@ -2467,9 +2782,9 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
           </div>
 
           {[
-            { title: 'Loja', links: [{ l: 'Tops', p: 'shop' }, { l: 'Calças', p: 'shop' }, { l: 'Vestidos', p: 'shop' }, { l: 'Casacos', p: 'shop' }, { l: 'Acessórios', p: 'shop' }, { l: 'Promoções', p: 'shop' }] as { l: string; p: Page }[] },
-            { title: 'Empresa', links: [{ l: 'Quem Somos', p: 'about' }, { l: 'Roupa Personalizada', p: 'custom' }, { l: 'Blog', p: 'blog' }, { l: 'Sustentabilidade', p: 'about' }, { l: 'Parcerias', p: 'contact' }, { l: 'Contacto', p: 'contact' }] as { l: string; p: Page }[] },
-            { title: 'Apoio', links: [{ l: 'FAQ', p: 'home' }, { l: 'Política de Envio', p: 'home' }, { l: 'Devoluções', p: 'home' }, { l: 'Garantia', p: 'home' }, { l: 'Privacidade', p: 'home' }, { l: 'Termos', p: 'home' }] as { l: string; p: Page }[] },
+            { title: T.footer.colShop, links: T.footer.shopLinks.map(l => ({ l, p: 'shop' as Page })) },
+            { title: T.footer.colCompany, links: (['about','about','blog','about','contact','contact'] as Page[]).map((p, i) => ({ l: T.footer.companyLinks[i], p })) },
+            { title: T.footer.colSupport, links: T.footer.supportLinks.map(l => ({ l, p: 'home' as Page })) },
           ].map(col => (
             <div key={col.title}>
               <h5 style={{ fontFamily: 'var(--f-sans)', fontSize: 11, letterSpacing: '.24em', textTransform: 'uppercase', color: 'var(--gold)', fontWeight: 500, margin: '0 0 18px' }}>{col.title}</h5>
@@ -2491,7 +2806,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
 
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 22, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <span style={{ fontSize: 12, color: 'var(--fg-mute)', letterSpacing: '.04em' }}>
-            © 2026 Karmic Node · Todos os direitos reservados · karmicnode@gmail.com
+            {T.footer.copy}
           </span>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             {['MB', 'VISA', 'MC', 'PayPal', 'MBWay'].map(m => (
@@ -2556,6 +2871,8 @@ function NewsletterForm() {
 // ─── App ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  const [lang, setLang] = useState<Lang>('pt')
+  const T = TRANSLATIONS[lang]
   const [activePage, setActivePage] = useState<Page>('home')
   const [activeProduct, setActiveProduct] = useState<Product | null>(null)
   const [shopFilter, setShopFilter] = useState('Todos')
@@ -2584,11 +2901,11 @@ export default function App() {
     const params = new URLSearchParams(window.location.search)
     const status = params.get('pagamento')
     if (status === 'sucesso') {
-      setToast('✅ Pagamento concluído! Obrigado pela sua compra.')
+      setToast(T.misc.paymentOk)
       setCartItems([])
       window.history.replaceState({}, '', '/')
     } else if (status === 'cancelado') {
-      setToast('Pagamento cancelado. O carrinho foi mantido.')
+      setToast(T.misc.paymentCancelled)
       window.history.replaceState({}, '', '/')
     }
   }, [])
@@ -2639,8 +2956,9 @@ export default function App() {
   const sharedProps = { onAdd: addToCart, onOpen: openProduct, wishlist, toggleWish, products: liveProducts }
 
   return (
+    <LangContext.Provider value={lang}>
     <div style={{ background: 'var(--bg)', color: 'var(--fg)', minHeight: '100vh' }}>
-      <Header activePage={activePage} shopFilter={shopFilter} navigate={navigate} cartCount={cartCount} openCart={() => setCartOpen(true)} />
+      <Header activePage={activePage} shopFilter={shopFilter} navigate={navigate} cartCount={cartCount} openCart={() => setCartOpen(true)} lang={lang} setLang={setLang} />
 
       {activePage === 'home' && <HomePage {...sharedProps} setPage={setPage} />}
       {activePage === 'shop' && <ShopPage key={shopFilter} {...sharedProps} initialCategory={shopFilter} />}
@@ -2659,7 +2977,7 @@ export default function App() {
       {toast && (
         <div className="kn-toast">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-          <span><b style={{ color: 'var(--fg)' }}>{toast.length > 30 ? toast.slice(0, 30) + '…' : toast}</b> adicionado ao carrinho</span>
+          <span><b style={{ color: 'var(--fg)' }}>{toast.length > 30 ? toast.slice(0, 30) + '…' : toast}</b> {T.misc.addedToCart}</span>
         </div>
       )}
 
@@ -2667,5 +2985,6 @@ export default function App() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 15l-6-6-6 6" /></svg>
       </button>
     </div>
+    </LangContext.Provider>
   )
 }

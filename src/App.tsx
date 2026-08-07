@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, type ReactNode } from 'react'
+import logoImg from '@/imports/Logo_KarmicNode_sem_fundo.png'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -918,12 +919,8 @@ function Header({ activePage, shopFilter, navigate, cartCount, openCart }: {
       <header style={{ position: 'sticky', top: 0, zIndex: 50, padding: `${scrolled ? 11 : 17}px var(--pad-x)`, background: scrolled ? 'rgba(11,11,12,.96)' : 'rgba(11,11,12,.72)', backdropFilter: 'blur(16px)', borderBottom: `1px solid ${scrolled ? 'var(--border)' : 'transparent'}`, display: 'flex', alignItems: 'center', gap: 28, transition: 'all .3s ease' }}>
 
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11, cursor: 'pointer', flexShrink: 0 }} onClick={() => navigate('home')}>
-          <svg viewBox="0 0 40 40" fill="none" style={{ width: 34, height: 34 }}>
-            <path d="M20 3L34 8V21C34 29 27.5 34.5 20 37C12.5 34.5 6 29 6 21V8Z" stroke="#B08D57" strokeWidth="1.2" fill="rgba(139,30,45,0.4)" />
-            <line x1="20" y1="9" x2="20" y2="30" stroke="#B08D57" strokeWidth="1.2" />
-            <line x1="15.5" y1="14" x2="24.5" y2="14" stroke="#B08D57" strokeWidth="1.2" />
-          </svg>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', flexShrink: 0 }} onClick={() => navigate('home')}>
+          <img src={logoImg} alt="Karmic Node" style={{ width: 40, height: 40, objectFit: 'contain' }} />
           <span style={{ fontFamily: 'var(--f-display)', fontSize: 20, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 500 }}>
             Karmic<span style={{ color: 'var(--gold)' }}>·</span>Node
           </span>
@@ -1825,12 +1822,8 @@ function BlogArticle({ post, onBack }: { post: BlogPost; onBack: () => void }) {
           </div>
 
           <div style={{ marginTop: 40, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 48, height: 48, background: 'var(--bordo)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <svg viewBox="0 0 40 40" fill="none" style={{ width: 28, height: 28 }}>
-                <path d="M20 4L32 8V19C32 26 26.5 30.5 20 33C13.5 30.5 8 26 8 19V8Z" stroke="#B08D57" strokeWidth="1.2" fill="rgba(139,30,45,0.4)" />
-                <line x1="20" y1="10" x2="20" y2="27" stroke="#B08D57" strokeWidth="1.2" />
-                <line x1="16" y1="14" x2="24" y2="14" stroke="#B08D57" strokeWidth="1.2" />
-              </svg>
+            <div style={{ width: 48, height: 48, background: 'var(--bordo)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+              <img src={logoImg} alt="Karmic Node" style={{ width: 36, height: 36, objectFit: 'contain' }} />
             </div>
             <div>
               <div style={{ fontFamily: 'var(--f-display)', fontSize: 17, fontWeight: 500 }}>{post.author}</div>
@@ -2449,12 +2442,8 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
       <div style={{ maxWidth: 'var(--maxw)', margin: '0 auto' }}>
         <div className="kn-footer-grid">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 18 }}>
-              <svg viewBox="0 0 40 40" fill="none" style={{ width: 34, height: 34, flexShrink: 0 }}>
-                <path d="M20 3L34 8V21C34 29 27.5 34.5 20 37C12.5 34.5 6 29 6 21V8Z" stroke="#B08D57" strokeWidth="1.2" fill="rgba(139,30,45,0.35)" />
-                <line x1="20" y1="9" x2="20" y2="30" stroke="#B08D57" strokeWidth="1.2" />
-                <line x1="15.5" y1="14" x2="24.5" y2="14" stroke="#B08D57" strokeWidth="1.2" />
-              </svg>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+              <img src={logoImg} alt="Karmic Node" style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0 }} />
               <span style={{ fontFamily: 'var(--f-display)', fontSize: 19, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 500 }}>
                 Karmic<span style={{ color: 'var(--gold)' }}>·</span>Node
               </span>

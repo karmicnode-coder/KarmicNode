@@ -920,7 +920,7 @@ function Header({ activePage, shopFilter, navigate, cartCount, openCart }: {
 
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', flexShrink: 0 }} onClick={() => navigate('home')}>
-          <img src={logoImg} alt="Karmic Node" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+          <img src={logoImg} alt="Karmic Node" style={{ width: 56, height: 56, objectFit: 'contain' }} />
           <span style={{ fontFamily: 'var(--f-display)', fontSize: 20, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 500 }}>
             Karmic<span style={{ color: 'var(--gold)' }}>·</span>Node
           </span>
@@ -1823,7 +1823,7 @@ function BlogArticle({ post, onBack }: { post: BlogPost; onBack: () => void }) {
 
           <div style={{ marginTop: 40, display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ width: 48, height: 48, background: 'var(--bordo)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
-              <img src={logoImg} alt="Karmic Node" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+              <img src={logoImg} alt="Karmic Node" style={{ width: 44, height: 44, objectFit: 'contain' }} />
             </div>
             <div>
               <div style={{ fontFamily: 'var(--f-display)', fontSize: 17, fontWeight: 500 }}>{post.author}</div>
@@ -2443,7 +2443,7 @@ function Footer({ setPage }: { setPage: (p: Page) => void }) {
         <div className="kn-footer-grid">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-              <img src={logoImg} alt="Karmic Node" style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0 }} />
+              <img src={logoImg} alt="Karmic Node" style={{ width: 52, height: 52, objectFit: 'contain', flexShrink: 0 }} />
               <span style={{ fontFamily: 'var(--f-display)', fontSize: 19, letterSpacing: '.14em', textTransform: 'uppercase', fontWeight: 500 }}>
                 Karmic<span style={{ color: 'var(--gold)' }}>·</span>Node
               </span>
